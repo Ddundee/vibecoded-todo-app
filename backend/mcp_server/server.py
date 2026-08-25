@@ -43,6 +43,7 @@ from app.services import recruiting as recruiting_service
 from app.services import recurrence as recurrence_service
 from app.services import tasks as tasks_service
 from app.services.priority import rank_tasks
+from app.utils import local_today
 
 configure_logging()
 logger = logging.getLogger("mcp_server")
@@ -221,7 +222,7 @@ def get_priority_ranked_tasks(limit: int = 10) -> List[dict]:
     changes any task's manually-set priority."""
     with _session() as session:
         open_tasks = tasks_service.list_tasks(session, include_completed=False)
-        ranked = rank_tasks(open_tasks, date.today())[:limit]
+        ranked = rank_tasks(open_tasks, local_today())[:limit]
         results = []
         for task, result in ranked:
             d = _task_dict(task)
@@ -362,7 +363,7 @@ def create_recurring_task(
             days_of_week=days_of_week,
             interval_days=interval_days,
             day_of_month=day_of_month,
-            start_date=date.fromisoformat(start_date) if start_date else date.today(),
+            start_date=date.fromisoformat(start_date) if start_date else local_today(),
             end_date=date.fromisoformat(end_date) if end_date else None,
         )
         rule = recurrence_service.create_recurring_task(session, payload)
@@ -512,7 +513,7 @@ def carry_unfinished_tasks_forward(
     ['low','medium'], to implement 'move unfinished low-priority tasks to
     tomorrow'."""
     with _session() as session:
-        f = date.fromisoformat(from_date) if from_date else date.today()
+        f = date.fromisoformat(from_date) if from_date else local_today()
         t = date.fromisoformat(to_date) if to_date else f + timedelta(days=1)
         prio = [TaskPriority(p) for p in priorities] if priorities else None
         return _tasks_list(tasks_service.carry_unfinished_forward(session, f, t, prio))

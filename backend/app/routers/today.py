@@ -8,13 +8,14 @@ from app.deps import get_db, require_auth
 from app.models.enums import TaskPriority
 from app.schemas import TaskListResponse, TodayView, WeekSummary
 from app.services import tasks as tasks_service
+from app.utils import local_today
 
 router = APIRouter(prefix="/api", tags=["planning"], dependencies=[Depends(require_auth)])
 
 
 @router.get("/today", response_model=TodayView)
 def get_today(session: Session = Depends(get_db)):
-    today = date.today()
+    today = local_today()
     bundle = tasks_service.get_today_bundle(session, today)
     return TodayView(
         date=bundle["date"],

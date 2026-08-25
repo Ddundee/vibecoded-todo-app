@@ -4,12 +4,13 @@ from typing import List, Optional
 
 from sqlmodel import Session, select
 
-from app.models.enums import ApplicationStatus, TaskPriority, TaskStatus
+from app.models.enums import ApplicationStatus, TaskStatus
 from app.models.recruiting import RecruitingDetail
 from app.models.task import Task
 from app.schemas import InternshipApplicationCreate, OACreate
 from app.services.oa import compute_oa_urgency, days_remaining
 from app.services.tasks import ACTIVE_STATUSES
+from app.utils import local_today
 
 
 def create_internship_application(session: Session, data: InternshipApplicationCreate) -> Task:
@@ -79,7 +80,7 @@ def get_oa_tasks(session: Session) -> List[Task]:
 
 
 def get_oa_deadlines(session: Session, today: Optional[date] = None) -> List[dict]:
-    today = today or date.today()
+    today = today or local_today()
     tasks = get_oa_tasks(session)
     items = []
     for task in tasks:
@@ -121,7 +122,7 @@ def get_recruiting_pipeline(session: Session) -> List[dict]:
 def get_urgent_recruiting_tasks(session: Session, today: Optional[date] = None) -> List[Task]:
     """Internship-related tasks (any recruiting category) that are still
     open, ordered so the most time-pressured ones come first."""
-    today = today or date.today()
+    today = today or local_today()
     query = (
         select(Task)
         .where(

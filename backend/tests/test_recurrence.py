@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from app.models.enums import RecurrencePattern, TaskPriority
 from app.schemas import RecurringTaskCreate
 from app.services import recurrence as recurrence_service
+from app.utils import local_today
 
 
 def make_rule(session, **overrides):
@@ -88,10 +89,10 @@ def test_rule_respects_end_date(session):
 
 
 def test_ensure_occurrences_is_idempotent(session):
-    make_rule(session, pattern=RecurrencePattern.daily, start_date=date.today())
+    make_rule(session, pattern=RecurrencePattern.daily, start_date=local_today())
 
-    first = recurrence_service.ensure_occurrences_for_date(session, date.today())
-    second = recurrence_service.ensure_occurrences_for_date(session, date.today())
+    first = recurrence_service.ensure_occurrences_for_date(session, local_today())
+    second = recurrence_service.ensure_occurrences_for_date(session, local_today())
 
     assert len(first) == 1
     assert len(second) == 0  # already materialized, no duplicate
@@ -100,9 +101,9 @@ def test_ensure_occurrences_is_idempotent(session):
 def test_completing_one_occurrence_does_not_affect_others(session):
     from app.services import tasks as tasks_service
 
-    make_rule(session, pattern=RecurrencePattern.daily, start_date=date.today())
+    make_rule(session, pattern=RecurrencePattern.daily, start_date=local_today())
 
-    today = date.today()
+    today = local_today()
     tomorrow = today + timedelta(days=1)
     occ_today = recurrence_service.ensure_occurrences_for_date(session, today)[0]
     occ_tomorrow = recurrence_service.ensure_occurrences_for_date(session, tomorrow)[0]

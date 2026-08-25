@@ -1,7 +1,7 @@
 """Optional demo data, only inserted when SEED_DEMO_DATA=true and the tasks
 table is empty. Meant to give a fresh install something to look at."""
 
-from datetime import date, timedelta
+from datetime import timedelta
 
 from sqlmodel import Session, select
 
@@ -10,6 +10,7 @@ from app.models.task import Task
 from app.schemas import InternshipApplicationCreate, OACreate, RecurringTaskCreate
 from app.services import recruiting as recruiting_service
 from app.services import recurrence as recurrence_service
+from app.utils import local_today
 
 
 def seed_demo_data(session: Session) -> None:
@@ -17,7 +18,7 @@ def seed_demo_data(session: Session) -> None:
     if existing is not None:
         return
 
-    today = date.today()
+    today = local_today()
 
     recruiting_service.create_oa(
         session,

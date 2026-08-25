@@ -1,9 +1,10 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from app.models.enums import TaskPriority, TaskStatus
 from app.schemas import TaskCreate
 from app.services import tasks as tasks_service
 from app.services.priority import compute_priority, rank_tasks
+from app.utils import local_today
 
 
 def make_task(session, **overrides):
@@ -15,12 +16,12 @@ def test_higher_manual_priority_scores_higher(session):
     low = make_task(session, priority=TaskPriority.low)
     critical = make_task(session, priority=TaskPriority.critical)
 
-    today = date.today()
+    today = local_today()
     assert compute_priority(critical, today).score > compute_priority(low, today).score
 
 
 def test_overdue_task_scores_higher_than_same_priority_not_due(session):
-    today = date.today()
+    today = local_today()
     overdue = make_task(session, priority=TaskPriority.medium, due_date=today - timedelta(days=2))
     no_due = make_task(session, priority=TaskPriority.medium)
 
@@ -28,7 +29,7 @@ def test_overdue_task_scores_higher_than_same_priority_not_due(session):
 
 
 def test_planned_for_today_adds_score(session):
-    today = date.today()
+    today = local_today()
     task = make_task(session, priority=TaskPriority.medium)
     baseline = compute_priority(task, today).score
 
@@ -39,13 +40,13 @@ def test_planned_for_today_adds_score(session):
 
 
 def test_manual_priority_field_is_never_overwritten_by_scoring(session):
-    task = make_task(session, priority=TaskPriority.low, due_date=date.today() - timedelta(days=5))
-    compute_priority(task, date.today())
+    task = make_task(session, priority=TaskPriority.low, due_date=local_today() - timedelta(days=5))
+    compute_priority(task, local_today())
     assert task.priority == TaskPriority.low  # scoring must not mutate the stored priority
 
 
 def test_rank_tasks_orders_descending_by_score(session):
-    today = date.today()
+    today = local_today()
     low = make_task(session, priority=TaskPriority.low)
     high_overdue = make_task(
         session, priority=TaskPriority.high, due_date=today - timedelta(days=3)
@@ -59,7 +60,7 @@ def test_rank_tasks_orders_descending_by_score(session):
 
 
 def test_blocked_status_reduces_score(session):
-    today = date.today()
+    today = local_today()
     todo_task = make_task(session, priority=TaskPriority.medium, status=TaskStatus.todo)
     blocked_task = make_task(session, priority=TaskPriority.medium, status=TaskStatus.blocked)
 
@@ -67,7 +68,7 @@ def test_blocked_status_reduces_score(session):
 
 
 def test_priority_result_includes_human_readable_reasons(session):
-    today = date.today()
+    today = local_today()
     task = make_task(session, priority=TaskPriority.critical, due_date=today)
     result = compute_priority(task, today)
     assert len(result.reasons) >= 2

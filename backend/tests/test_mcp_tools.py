@@ -1,9 +1,9 @@
 import asyncio
-from datetime import date
 
 import pytest
 
 import mcp_server.server as mcp_server
+from app.utils import local_today
 
 
 @pytest.fixture()
@@ -31,7 +31,7 @@ def test_complete_task_tool(mcp_env):
 
 def test_create_oa_tool_sets_urgency(mcp_env):
     result = mcp_server.create_oa(
-        company="Roblox", oa_name="SWE OA", deadline=date.today().isoformat()
+        company="Roblox", oa_name="SWE OA", deadline=local_today().isoformat()
     )
     assert result["oa_urgency"] == "critical"
 
@@ -47,7 +47,7 @@ def test_create_internship_application_tool(mcp_env):
 
 def test_create_recurring_task_tool_and_today_materializes_it(mcp_env):
     mcp_server.create_recurring_task(
-        title="Apply to 20 internships", pattern="weekdays", start_date=date.today().isoformat()
+        title="Apply to 20 internships", pattern="weekdays", start_date=local_today().isoformat()
     )
     today_bundle = mcp_server.get_today()
     # weekdays pattern may or may not fire today depending on which day tests run;
@@ -64,7 +64,7 @@ def test_plan_task_for_today_and_carry_forward(mcp_env):
 
 
 def test_get_priority_ranked_tasks_includes_reasons(mcp_env):
-    mcp_server.create_task(title="urgent", priority="critical", due_date=date.today().isoformat())
+    mcp_server.create_task(title="urgent", priority="critical", due_date=local_today().isoformat())
     mcp_server.create_task(title="whenever", priority="low")
 
     ranked = mcp_server.get_priority_ranked_tasks(limit=5)

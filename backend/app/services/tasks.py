@@ -10,7 +10,7 @@ from app.schemas import RecruitingDetailIn, TaskCreate, TaskRead, TaskUpdate
 from app.services import recurrence as recurrence_service
 from app.services.oa import compute_oa_urgency, days_remaining
 from app.services.priority import compute_priority
-from app.utils import utcnow
+from app.utils import local_today, utcnow
 
 ACTIVE_STATUSES = (
     TaskStatus.inbox,
@@ -192,7 +192,7 @@ def add_note(session: Session, task: Task, note: str) -> Task:
 
 
 def plan_task_for_today(session: Session, task: Task, for_date: Optional[date] = None) -> Task:
-    task.planned_for_date = for_date or date.today()
+    task.planned_for_date = for_date or local_today()
     _touch(task)
     session.add(task)
     session.commit()
@@ -239,7 +239,7 @@ def carry_unfinished_forward(
 
 
 def get_overdue(session: Session, today: Optional[date] = None) -> List[Task]:
-    today = today or date.today()
+    today = today or local_today()
     query = (
         select(Task)
         .where(Task.due_date < today, Task.status.in_(ACTIVE_STATUSES))
@@ -249,7 +249,7 @@ def get_overdue(session: Session, today: Optional[date] = None) -> List[Task]:
 
 
 def get_upcoming(session: Session, today: Optional[date] = None, days: int = 7) -> List[Task]:
-    today = today or date.today()
+    today = today or local_today()
     end = today + timedelta(days=days)
     query = (
         select(Task)
@@ -264,7 +264,7 @@ def get_upcoming(session: Session, today: Optional[date] = None, days: int = 7) 
 
 
 def get_today_bundle(session: Session, today: Optional[date] = None) -> dict:
-    today = today or date.today()
+    today = today or local_today()
 
     # Materialize any recurring tasks due to fire today before assembling
     # the view, so they show up immediately without a separate cron job.
@@ -315,7 +315,7 @@ def get_today_bundle(session: Session, today: Optional[date] = None) -> dict:
 
 
 def get_week_summary(session: Session, start_date: Optional[date] = None) -> dict:
-    start_date = start_date or (date.today() - timedelta(days=date.today().weekday()))
+    start_date = start_date or (local_today() - timedelta(days=local_today().weekday()))
     end_date = start_date + timedelta(days=6)
 
     completed = list(
@@ -354,7 +354,7 @@ def get_week_summary(session: Session, start_date: Optional[date] = None) -> dic
 
 
 def serialize_task(task: Task, today: Optional[date] = None) -> TaskRead:
-    today = today or date.today()
+    today = today or local_today()
     priority_result = compute_priority(task, today)
 
     is_overdue = (

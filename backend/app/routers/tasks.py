@@ -1,5 +1,5 @@
 from datetime import date, time
-from typing import List, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session
@@ -9,6 +9,7 @@ from app.models.enums import TaskPriority, TaskStatus
 from app.schemas import TaskCreate, TaskListResponse, TaskRead, TaskUpdate
 from app.services import tasks as tasks_service
 from app.services.priority import rank_tasks
+from app.utils import local_today
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"], dependencies=[Depends(require_auth)])
 
@@ -54,7 +55,7 @@ def list_tasks(
 @router.get("/ranked", response_model=TaskListResponse)
 def ranked_tasks(limit: int = 20, session: Session = Depends(get_db)):
     open_tasks = tasks_service.list_tasks(session, include_completed=False)
-    ranked = rank_tasks(open_tasks, date.today())[:limit]
+    ranked = rank_tasks(open_tasks, local_today())[:limit]
     read = [tasks_service.serialize_task(t) for t, _ in ranked]
     return TaskListResponse(tasks=read, count=len(read))
 

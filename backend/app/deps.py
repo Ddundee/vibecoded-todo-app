@@ -1,6 +1,6 @@
 from typing import Iterator, Optional
 
-from fastapi import Cookie, Depends, Header, HTTPException, status
+from fastapi import Cookie, Header, HTTPException, status
 from sqlmodel import Session
 
 from app.config import get_settings

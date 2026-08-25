@@ -6,6 +6,10 @@ os.environ.setdefault("API_TOKEN", "test-token")
 os.environ.setdefault("SESSION_SECRET", "test-session-secret-value-needs-32-bytes")
 os.environ.setdefault("ADMIN_USERNAME", "admin")
 os.environ.setdefault("ADMIN_PASSWORD", "admin-password")
+# Fixed explicitly (rather than relying on the config default) so tests
+# using `local_today()` are deterministic regardless of the machine's
+# system timezone.
+os.environ.setdefault("APP_TIMEZONE", "UTC")
 
 import pytest
 from fastapi.testclient import TestClient

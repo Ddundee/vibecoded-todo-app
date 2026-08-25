@@ -1,4 +1,6 @@
-from datetime import date, timedelta
+from datetime import timedelta
+
+from app.utils import local_today
 
 
 def test_health_check_requires_no_auth(client):
@@ -50,7 +52,7 @@ def test_get_today_endpoint_shape(client, auth_headers):
 
 
 def test_overdue_endpoint(client, auth_headers):
-    due = (date.today() - timedelta(days=1)).isoformat()
+    due = (local_today() - timedelta(days=1)).isoformat()
     client.post("/api/tasks", json={"title": "Late task", "due_date": due}, headers=auth_headers)
     resp = client.get("/api/overdue", headers=auth_headers)
     assert resp.status_code == 200
@@ -58,7 +60,7 @@ def test_overdue_endpoint(client, auth_headers):
 
 
 def test_create_oa_and_list_oas(client, auth_headers):
-    deadline = (date.today() + timedelta(days=2)).isoformat()
+    deadline = (local_today() + timedelta(days=2)).isoformat()
     resp = client.post(
         "/api/recruiting/oas",
         json={"company": "Roblox", "oa_name": "SWE OA", "deadline": deadline},
@@ -105,7 +107,7 @@ def test_ranked_endpoint_orders_by_score(client, auth_headers):
     client.post(
         "/api/tasks", json={"title": "low", "priority": "low"}, headers=auth_headers
     )
-    overdue = (date.today() - timedelta(days=2)).isoformat()
+    overdue = (local_today() - timedelta(days=2)).isoformat()
     client.post(
         "/api/tasks",
         json={"title": "urgent", "priority": "critical", "due_date": overdue},

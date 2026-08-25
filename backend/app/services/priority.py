@@ -9,7 +9,7 @@ silently overwritten.
 """
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, time
+from datetime import date
 from typing import List
 
 from app.models.enums import TaskPriority, TaskStatus
@@ -55,8 +55,6 @@ def compute_priority(task: Task, today: date) -> PriorityResult:
         TaskStatus.completed,
         TaskStatus.cancelled,
     ):
-        due_dt = datetime.combine(task.due_date, task.due_time or time(23, 59, 59))
-        now = datetime.combine(today, datetime.now().time())
         days_over = (today - task.due_date).days
 
         if task.due_date < today:

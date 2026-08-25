@@ -1,8 +1,9 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from app.models.enums import TaskPriority, TaskStatus
 from app.schemas import TaskCreate, TaskUpdate
 from app.services import tasks as tasks_service
+from app.utils import local_today
 
 
 def make_task(session, title="Test task", **overrides):
@@ -24,7 +25,7 @@ def test_create_task_with_recruiting_detail(session):
     task = make_task(
         session,
         category="OA",
-        recruiting=RecruitingDetailIn(company="Roblox", oa_deadline=date.today()),
+        recruiting=RecruitingDetailIn(company="Roblox", oa_deadline=local_today()),
     )
     assert task.recruiting_detail is not None
     assert task.recruiting_detail.company == "Roblox"
@@ -52,8 +53,8 @@ def test_cancel_task(session):
 
 
 def test_reschedule_task_changes_due_date(session):
-    task = make_task(session, due_date=date.today())
-    new_date = date.today() + timedelta(days=5)
+    task = make_task(session, due_date=local_today())
+    new_date = local_today() + timedelta(days=5)
     rescheduled = tasks_service.reschedule_task(session, task, new_date)
     assert rescheduled.due_date == new_date
 
@@ -75,10 +76,10 @@ def test_add_note_appends_with_timestamp(session):
 
 
 def test_plan_and_remove_from_today_does_not_change_due_date(session):
-    due = date.today() + timedelta(days=10)
+    due = local_today() + timedelta(days=10)
     task = make_task(session, due_date=due)
     planned = tasks_service.plan_task_for_today(session, task)
-    assert planned.planned_for_date == date.today()
+    assert planned.planned_for_date == local_today()
     assert planned.due_date == due  # unchanged
 
     removed = tasks_service.remove_task_from_today(session, planned)
@@ -87,7 +88,7 @@ def test_plan_and_remove_from_today_does_not_change_due_date(session):
 
 
 def test_due_date_filtering(session):
-    today = date.today()
+    today = local_today()
     make_task(session, title="due today", due_date=today)
     make_task(session, title="due next week", due_date=today + timedelta(days=7))
     make_task(session, title="no due date")
@@ -98,11 +99,11 @@ def test_due_date_filtering(session):
 
 
 def test_overdue_detection_excludes_completed_and_cancelled(session):
-    yesterday = date.today() - timedelta(days=1)
+    yesterday = local_today() - timedelta(days=1)
     overdue_open = make_task(session, title="overdue open", due_date=yesterday)
     overdue_done = make_task(session, title="overdue done", due_date=yesterday)
     tasks_service.complete_task(session, overdue_done)
-    make_task(session, title="due later", due_date=date.today() + timedelta(days=1))
+    make_task(session, title="due later", due_date=local_today() + timedelta(days=1))
 
     overdue = tasks_service.get_overdue(session)
     titles = {t.title for t in overdue}
@@ -111,7 +112,7 @@ def test_overdue_detection_excludes_completed_and_cancelled(session):
 
 
 def test_upcoming_respects_window(session):
-    today = date.today()
+    today = local_today()
     make_task(session, title="in window", due_date=today + timedelta(days=3))
     make_task(session, title="out of window", due_date=today + timedelta(days=30))
 
@@ -122,7 +123,7 @@ def test_upcoming_respects_window(session):
 
 
 def test_carry_unfinished_forward_moves_planned_and_due(session):
-    today = date.today()
+    today = local_today()
     tomorrow = today + timedelta(days=1)
     task = make_task(session, due_date=today, priority=TaskPriority.low)
     tasks_service.plan_task_for_today(session, task, today)
@@ -134,7 +135,7 @@ def test_carry_unfinished_forward_moves_planned_and_due(session):
 
 
 def test_carry_unfinished_forward_respects_priority_filter(session):
-    today = date.today()
+    today = local_today()
     tomorrow = today + timedelta(days=1)
     low = make_task(session, title="low", priority=TaskPriority.low)
     high = make_task(session, title="high", priority=TaskPriority.high)
