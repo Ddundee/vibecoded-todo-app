@@ -1,0 +1,116 @@
+from datetime import date, timedelta
+
+
+def test_health_check_requires_no_auth(client):
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "ok"}
+
+
+def test_tasks_endpoint_requires_auth(client):
+    resp = client.get("/api/tasks")
+    assert resp.status_code == 401
+
+
+def test_create_and_fetch_task(client, auth_headers):
+    resp = client.post("/api/tasks", json={"title": "Apply to Akuna"}, headers=auth_headers)
+    assert resp.status_code == 201
+    task = resp.json()
+    assert task["status"] == "inbox"
+
+    resp = client.get(f"/api/tasks/{task['id']}", headers=auth_headers)
+    assert resp.status_code == 200
+    assert resp.json()["title"] == "Apply to Akuna"
+
+
+def test_patch_task_updates_fields(client, auth_headers):
+    created = client.post("/api/tasks", json={"title": "Old"}, headers=auth_headers).json()
+    resp = client.patch(
+        f"/api/tasks/{created['id']}", json={"title": "New", "priority": "critical"},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["title"] == "New"
+    assert resp.json()["priority"] == "critical"
+
+
+def test_complete_task_endpoint(client, auth_headers):
+    created = client.post("/api/tasks", json={"title": "Finish me"}, headers=auth_headers).json()
+    resp = client.post(f"/api/tasks/{created['id']}/complete", headers=auth_headers)
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "completed"
+
+
+def test_get_today_endpoint_shape(client, auth_headers):
+    resp = client.get("/api/today", headers=auth_headers)
+    assert resp.status_code == 200
+    body = resp.json()
+    for key in ["scheduled", "due_today", "overdue", "recurring_today", "suggested_high_priority"]:
+        assert key in body
+
+
+def test_overdue_endpoint(client, auth_headers):
+    due = (date.today() - timedelta(days=1)).isoformat()
+    client.post("/api/tasks", json={"title": "Late task", "due_date": due}, headers=auth_headers)
+    resp = client.get("/api/overdue", headers=auth_headers)
+    assert resp.status_code == 200
+    assert resp.json()["count"] == 1
+
+
+def test_create_oa_and_list_oas(client, auth_headers):
+    deadline = (date.today() + timedelta(days=2)).isoformat()
+    resp = client.post(
+        "/api/recruiting/oas",
+        json={"company": "Roblox", "oa_name": "SWE OA", "deadline": deadline},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 201
+    assert resp.json()["oa_urgency"] == "high"
+
+    resp = client.get("/api/recruiting/oas", headers=auth_headers)
+    assert resp.status_code == 200
+    assert len(resp.json()) == 1
+    assert resp.json()[0]["company"] == "Roblox"
+
+
+def test_recruiting_pipeline_groups_by_status(client, auth_headers):
+    client.post(
+        "/api/recruiting/applications",
+        json={"company": "Jane Street", "application_status": "applied"},
+        headers=auth_headers,
+    )
+    resp = client.get("/api/recruiting/pipeline", headers=auth_headers)
+    assert resp.status_code == 200
+    stages = {s["status"]: s["count"] for s in resp.json()}
+    assert stages.get("applied") == 1
+
+
+def test_login_sets_session_cookie_and_grants_access(client):
+    resp = client.post(
+        "/api/auth/login", json={"username": "admin", "password": "admin-password"}
+    )
+    assert resp.status_code == 200
+    assert "todo_session" in resp.cookies
+
+    resp = client.get("/api/tasks")  # cookie sent automatically by TestClient
+    assert resp.status_code == 200
+
+
+def test_login_with_wrong_password_fails(client):
+    resp = client.post("/api/auth/login", json={"username": "admin", "password": "wrong"})
+    assert resp.status_code == 401
+
+
+def test_ranked_endpoint_orders_by_score(client, auth_headers):
+    client.post(
+        "/api/tasks", json={"title": "low", "priority": "low"}, headers=auth_headers
+    )
+    overdue = (date.today() - timedelta(days=2)).isoformat()
+    client.post(
+        "/api/tasks",
+        json={"title": "urgent", "priority": "critical", "due_date": overdue},
+        headers=auth_headers,
+    )
+    resp = client.get("/api/tasks/ranked", headers=auth_headers)
+    titles = [t["title"] for t in resp.json()["tasks"]]
+    assert titles[0] == "urgent"
