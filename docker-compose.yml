@@ -1,0 +1,99 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-todo_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-todo_app}
+      POSTGRES_DB: ${POSTGRES_DB:-todo_app}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-todo_app}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # Not published to the host on purpose — only other containers on this
+    # compose network can reach Postgres.
+
+  backend:
+    build: ./backend
+    image: todo-app-backend:latest
+    restart: unless-stopped
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    env_file: .env
+    environment:
+      # Always bind to all interfaces INSIDE the container's own network
+      # namespace. Host-level exposure (localhost/LAN/Tailscale) is
+      # controlled below by the `ports:` mapping, which is where BIND_HOST
+      # from .env actually applies.
+      BIND_HOST: 0.0.0.0
+      POSTGRES_HOST: db
+    volumes:
+      - backend_data:/app/data
+    ports:
+      - "${BIND_HOST:-0.0.0.0}:${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  mcp:
+    build: ./backend
+    image: todo-app-backend:latest
+    restart: unless-stopped
+    command: ["python", "-m", "mcp_server.server", "--transport", "http"]
+    env_file: .env
+    environment:
+      BIND_HOST: 0.0.0.0
+      POSTGRES_HOST: db
+    volumes:
+      - backend_data:/app/data
+    ports:
+      - "${BIND_HOST:-0.0.0.0}:${MCP_PORT:-8001}:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked into the build (Next.js resolves rewrites at build time,
+        # not at container start) — must match the `backend` service name
+        # above.
+        INTERNAL_API_BASE_URL: http://backend:8000
+    image: todo-app-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "${BIND_HOST:-0.0.0.0}:${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/login', r => process.exit(r.statusCode < 500 ? 0 : 1)).on('error', () => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
+  backend_data:

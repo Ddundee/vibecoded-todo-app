@@ -1,0 +1,36 @@
+# Multi-stage build producing a minimal Next.js "standalone" server.
+# node:20-slim publishes multi-arch manifests, so this builds natively on
+# both amd64 dev machines and arm64 (Raspberry Pi).
+
+FROM node:20-slim AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+FROM node:20-slim AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+# next.config.ts's rewrites() destination is resolved once, at build time,
+# into the compiled routes manifest — the standalone server does NOT
+# re-read this env var at container start. It must match the backend
+# service's name in docker-compose.yml (overridable via --build-arg if you
+# rename that service).
+ARG INTERNAL_API_BASE_URL=http://backend:8000
+ENV INTERNAL_API_BASE_URL=$INTERNAL_API_BASE_URL
+RUN npm run build
+
+FROM node:20-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+RUN useradd --create-home --uid 1000 appuser
+COPY --from=builder --chown=appuser:appuser /app/public ./public
+COPY --from=builder --chown=appuser:appuser /app/.next/standalone ./
+COPY --from=builder --chown=appuser:appuser /app/.next/static ./.next/static
+
+USER appuser
+EXPOSE 3000
+ENV PORT=3000 HOSTNAME=0.0.0.0
+
+CMD ["node", "server.js"]

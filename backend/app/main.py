@@ -2,7 +2,6 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session
 
 from app import db
@@ -39,13 +38,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# No CORS middleware: the bundled Next.js frontend proxies /api/* to this
+# service same-origin (see frontend/next.config.ts), so the browser never
+# makes a cross-origin request. MCP clients and scripts use the bearer
+# token and aren't subject to CORS at all.
 
 app.include_router(auth.router)
 app.include_router(tasks.router)
