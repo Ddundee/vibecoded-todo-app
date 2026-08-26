@@ -4,6 +4,7 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { parseQuickAdd } from "@/lib/quickAdd";
 import type { Task } from "@/lib/types";
+import { BUTTON_PRIMARY, FAINT, FIELD } from "@/lib/ui";
 
 export default function QuickAddBar({ onCreated }: { onCreated?: (task: Task) => void }) {
   const [value, setValue] = useState("");
@@ -38,17 +39,13 @@ export default function QuickAddBar({ onCreated }: { onCreated?: (task: Task) =>
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder='Quick add… e.g. "Akuna C++ OA due Sept 18 high priority"'
-          className="flex-1 border border-neutral-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-300"
+          className={`flex-1 py-2 ${FIELD}`}
         />
-        <button
-          type="submit"
-          disabled={busy || !value.trim()}
-          className="px-3 py-2 text-sm rounded-lg bg-neutral-900 text-white hover:bg-neutral-700 disabled:opacity-50 shrink-0"
-        >
+        <button type="submit" disabled={busy || !value.trim()} className={`shrink-0 ${BUTTON_PRIMARY}`}>
           Add
         </button>
       </div>
-      {lastHint && <span className="text-xs text-neutral-400 px-1">{lastHint}</span>}
+      {lastHint && <span className={`px-1 text-xs ${FAINT}`}>{lastHint}</span>}
     </form>
   );
 }

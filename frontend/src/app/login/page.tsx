@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
+import { BUTTON_PRIMARY, CARD, FIELD } from "@/lib/ui";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,12 +28,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-sm bg-white border border-neutral-200 rounded-xl p-6 space-y-4 shadow-sm"
-      >
-        <h1 className="text-lg font-semibold text-center">Personal Task Manager</h1>
+    <div className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-950">
+      <form onSubmit={handleSubmit} className={`w-full max-w-sm space-y-5 p-6 ${CARD}`}>
+        <div className="flex flex-col items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+          <h1 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+            Personal Task Manager
+          </h1>
+        </div>
         <div className="space-y-2">
           <input
             autoFocus
@@ -40,7 +43,7 @@ export default function LoginPage() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Username"
-            className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm"
+            className={`w-full py-2 ${FIELD}`}
           />
           <input
             required
@@ -48,15 +51,11 @@ export default function LoginPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
-            className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm"
+            className={`w-full py-2 ${FIELD}`}
           />
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full py-2 text-sm rounded-lg bg-neutral-900 text-white hover:bg-neutral-700 disabled:opacity-50"
-        >
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        <button type="submit" disabled={busy} className={`w-full ${BUTTON_PRIMARY}`}>
           {busy ? "Signing in…" : "Sign in"}
         </button>
       </form>

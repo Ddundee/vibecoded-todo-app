@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { onTasksChanged } from "@/lib/events";
 import { formatDate } from "@/lib/format";
 import type { Task, WeekSummary } from "@/lib/types";
+import { CARD, CARD_LIST, FAINT, MUTED } from "@/lib/ui";
 import TaskRow from "@/components/TaskRow";
 
 export default function CompletedPage() {
@@ -48,23 +49,23 @@ export default function CompletedPage() {
 
       {summary && (
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white border border-neutral-200 rounded-xl p-3 text-center">
+          <div className={`p-3 text-center ${CARD}`}>
             <div className="text-2xl font-semibold">{summary.completed_count}</div>
-            <div className="text-xs text-neutral-500">Completed this week</div>
+            <div className={`text-xs ${MUTED}`}>Completed this week</div>
           </div>
-          <div className="bg-white border border-neutral-200 rounded-xl p-3 text-center">
+          <div className={`p-3 text-center ${CARD}`}>
             <div className="text-2xl font-semibold">{summary.created_count}</div>
-            <div className="text-xs text-neutral-500">Created this week</div>
+            <div className={`text-xs ${MUTED}`}>Created this week</div>
           </div>
-          <div className="bg-white border border-neutral-200 rounded-xl p-3 text-center">
+          <div className={`p-3 text-center ${CARD}`}>
             <div className="text-2xl font-semibold">{summary.overdue_count}</div>
-            <div className="text-xs text-neutral-500">Still overdue</div>
+            <div className={`text-xs ${MUTED}`}>Still overdue</div>
           </div>
         </div>
       )}
 
       {summary && Object.keys(summary.completed_by_category).length > 0 && (
-        <div className="text-sm text-neutral-500">
+        <div className={`text-sm ${MUTED}`}>
           {formatDate(summary.start_date)} – {formatDate(summary.end_date)} by category:{" "}
           {Object.entries(summary.completed_by_category)
             .map(([cat, count]) => `${cat} (${count})`)
@@ -72,12 +73,12 @@ export default function CompletedPage() {
         </div>
       )}
 
-      {loading && <p className="text-sm text-neutral-400">Loading…</p>}
+      {loading && <p className={`text-sm ${FAINT}`}>Loading…</p>}
       {!loading && tasks.length === 0 && (
-        <p className="text-sm text-neutral-400">Nothing completed yet.</p>
+        <p className={`text-sm ${FAINT}`}>Nothing completed yet.</p>
       )}
 
-      <ul className="divide-y divide-neutral-100 bg-white rounded-xl border border-neutral-200">
+      <ul className={CARD_LIST}>
         {tasks.map((t) => (
           <TaskRow key={t.id} task={t} onUpdated={onUpdated} onDeleted={onDeleted} />
         ))}

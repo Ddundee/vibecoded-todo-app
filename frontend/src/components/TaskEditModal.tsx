@@ -4,6 +4,7 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { notifyTasksChanged } from "@/lib/events";
 import { SEED_CATEGORIES, type Task, type TaskPriority, type TaskStatus } from "@/lib/types";
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, FIELD as FIELD_BASE, MUTED } from "@/lib/ui";
 
 interface Props {
   task: Task | null; // null = create mode
@@ -13,6 +14,9 @@ interface Props {
 
 const STATUSES: TaskStatus[] = ["inbox", "todo", "in_progress", "blocked", "completed", "cancelled"];
 const PRIORITIES: TaskPriority[] = ["critical", "high", "medium", "low"];
+
+const FIELD = `mt-1 w-full py-2 ${FIELD_BASE}`;
+const LABEL = `text-xs ${MUTED}`;
 
 export default function TaskEditModal({ task, onClose, onSaved }: Props) {
   const [title, setTitle] = useState(task?.title ?? "");
@@ -63,17 +67,19 @@ export default function TaskEditModal({ task, onClose, onSaved }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/30 p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 sm:items-center dark:bg-black/60">
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-xl shadow-xl w-full max-w-lg p-5 space-y-3 my-8"
+        className="my-8 w-full max-w-lg space-y-3 rounded-xl bg-white p-5 shadow-xl dark:bg-neutral-900"
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold">{task ? "Edit task" : "New task"}</h2>
+          <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
+            {task ? "Edit task" : "New task"}
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-neutral-400 hover:text-neutral-600 text-sm"
+            className="text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300"
           >
             ✕
           </button>
@@ -85,23 +91,23 @@ export default function TaskEditModal({ task, onClose, onSaved }: Props) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Title"
-          className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm"
+          className={FIELD.replace("mt-1 ", "")}
         />
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Description (optional)"
           rows={2}
-          className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm"
+          className={FIELD.replace("mt-1 ", "")}
         />
 
         <div className="grid grid-cols-2 gap-3">
-          <label className="text-xs text-neutral-500">
+          <label className={LABEL}>
             Status
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              className="mt-1 w-full border border-neutral-200 rounded-lg px-2 py-1.5 text-sm"
+              className={FIELD}
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>
@@ -110,12 +116,12 @@ export default function TaskEditModal({ task, onClose, onSaved }: Props) {
               ))}
             </select>
           </label>
-          <label className="text-xs text-neutral-500">
+          <label className={LABEL}>
             Priority
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as TaskPriority)}
-              className="mt-1 w-full border border-neutral-200 rounded-lg px-2 py-1.5 text-sm"
+              className={FIELD}
             >
               {PRIORITIES.map((p) => (
                 <option key={p} value={p}>
@@ -124,13 +130,13 @@ export default function TaskEditModal({ task, onClose, onSaved }: Props) {
               ))}
             </select>
           </label>
-          <label className="text-xs text-neutral-500">
+          <label className={LABEL}>
             Category
             <input
               list="categories"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="mt-1 w-full border border-neutral-200 rounded-lg px-2 py-1.5 text-sm"
+              className={FIELD}
             />
             <datalist id="categories">
               {SEED_CATEGORIES.map((c) => (
@@ -138,40 +144,36 @@ export default function TaskEditModal({ task, onClose, onSaved }: Props) {
               ))}
             </datalist>
           </label>
-          <label className="text-xs text-neutral-500">
+          <label className={LABEL}>
             Tags (comma separated)
-            <input
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              className="mt-1 w-full border border-neutral-200 rounded-lg px-2 py-1.5 text-sm"
-            />
+            <input value={tags} onChange={(e) => setTags(e.target.value)} className={FIELD} />
           </label>
-          <label className="text-xs text-neutral-500">
+          <label className={LABEL}>
             Due date
             <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="mt-1 w-full border border-neutral-200 rounded-lg px-2 py-1.5 text-sm"
+              className={FIELD}
             />
           </label>
-          <label className="text-xs text-neutral-500">
+          <label className={LABEL}>
             Due time
             <input
               type="time"
               value={dueTime}
               onChange={(e) => setDueTime(e.target.value)}
-              className="mt-1 w-full border border-neutral-200 rounded-lg px-2 py-1.5 text-sm"
+              className={FIELD}
             />
           </label>
-          <label className="text-xs text-neutral-500 col-span-2">
+          <label className={`${LABEL} col-span-2`}>
             Estimated duration (minutes)
             <input
               type="number"
               min={0}
               value={estimatedDuration}
               onChange={(e) => setEstimatedDuration(e.target.value)}
-              className="mt-1 w-full border border-neutral-200 rounded-lg px-2 py-1.5 text-sm"
+              className={FIELD}
             />
           </label>
         </div>
@@ -181,24 +183,16 @@ export default function TaskEditModal({ task, onClose, onSaved }: Props) {
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Notes"
           rows={2}
-          className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm"
+          className={FIELD.replace("mt-1 ", "")}
         />
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
         <div className="flex justify-end gap-2 pt-1">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-3 py-1.5 text-sm rounded-lg border border-neutral-200 hover:bg-neutral-50"
-          >
+          <button type="button" onClick={onClose} className={BUTTON_SECONDARY}>
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-3 py-1.5 text-sm rounded-lg bg-neutral-900 text-white hover:bg-neutral-700 disabled:opacity-50"
-          >
+          <button type="submit" disabled={saving} className={BUTTON_PRIMARY}>
             {saving ? "Saving…" : "Save"}
           </button>
         </div>

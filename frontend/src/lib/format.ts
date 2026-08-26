@@ -43,40 +43,67 @@ export function relativeDueLabel(iso: string | null | undefined): string {
   return formatDate(iso);
 }
 
+// Soft, low-opacity tinted badges: one token per color reads correctly on
+// both light and dark surfaces without needing separate light/dark
+// background colors, which keeps the palette small and consistent.
+//
+// Classes are spelled out in full below (not built from a `${color}`
+// template) because Tailwind statically scans source text for complete
+// utility names — an interpolated class name never matches anything and
+// silently produces no CSS.
+const NEUTRAL_TINT =
+  "bg-neutral-500/10 text-neutral-600 ring-1 ring-inset ring-neutral-500/20 dark:text-neutral-400";
+const RED_TINT =
+  "bg-red-500/10 text-red-700 ring-1 ring-inset ring-red-500/20 dark:text-red-400";
+const ORANGE_TINT =
+  "bg-orange-500/10 text-orange-700 ring-1 ring-inset ring-orange-500/20 dark:text-orange-400";
+const BLUE_TINT =
+  "bg-blue-500/10 text-blue-700 ring-1 ring-inset ring-blue-500/20 dark:text-blue-400";
+const PURPLE_TINT =
+  "bg-purple-500/10 text-purple-700 ring-1 ring-inset ring-purple-500/20 dark:text-purple-400";
+const YELLOW_TINT =
+  "bg-yellow-500/10 text-yellow-700 ring-1 ring-inset ring-yellow-500/20 dark:text-yellow-400";
+const GREEN_TINT =
+  "bg-green-500/10 text-green-700 ring-1 ring-inset ring-green-500/20 dark:text-green-400";
+
 export const PRIORITY_STYLES: Record<TaskPriority, string> = {
-  critical: "bg-red-100 text-red-800 border-red-200",
-  high: "bg-orange-100 text-orange-800 border-orange-200",
-  medium: "bg-blue-100 text-blue-800 border-blue-200",
-  low: "bg-neutral-100 text-neutral-600 border-neutral-200",
+  critical: RED_TINT,
+  high: ORANGE_TINT,
+  medium: BLUE_TINT,
+  low: NEUTRAL_TINT,
 };
 
 export const STATUS_STYLES: Record<TaskStatus, string> = {
-  inbox: "bg-purple-100 text-purple-800 border-purple-200",
-  todo: "bg-neutral-100 text-neutral-700 border-neutral-200",
-  in_progress: "bg-blue-100 text-blue-800 border-blue-200",
-  blocked: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  completed: "bg-green-100 text-green-800 border-green-200",
-  cancelled: "bg-neutral-100 text-neutral-400 border-neutral-200 line-through",
+  inbox: PURPLE_TINT,
+  todo: NEUTRAL_TINT,
+  in_progress: BLUE_TINT,
+  blocked: YELLOW_TINT,
+  completed: GREEN_TINT,
+  cancelled: `${NEUTRAL_TINT} line-through opacity-70`,
 };
 
 export const URGENCY_STYLES: Record<OAUrgency, string> = {
-  expired: "bg-neutral-200 text-neutral-500 border-neutral-300",
-  critical: "bg-red-100 text-red-800 border-red-200",
-  high: "bg-orange-100 text-orange-800 border-orange-200",
-  upcoming: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  normal: "bg-neutral-100 text-neutral-600 border-neutral-200",
+  expired: NEUTRAL_TINT,
+  critical: RED_TINT,
+  high: ORANGE_TINT,
+  upcoming: YELLOW_TINT,
+  normal: NEUTRAL_TINT,
+};
+
+const CATEGORY_STYLES: Record<string, string> = {
+  internship:
+    "bg-indigo-500/10 text-indigo-700 ring-1 ring-inset ring-indigo-500/20 dark:text-indigo-400",
+  OA: "bg-pink-500/10 text-pink-700 ring-1 ring-inset ring-pink-500/20 dark:text-pink-400",
+  interview: "bg-teal-500/10 text-teal-700 ring-1 ring-inset ring-teal-500/20 dark:text-teal-400",
+  LeetCode:
+    "bg-amber-500/10 text-amber-700 ring-1 ring-inset ring-amber-500/20 dark:text-amber-400",
+  school: "bg-cyan-500/10 text-cyan-700 ring-1 ring-inset ring-cyan-500/20 dark:text-cyan-400",
+  project:
+    "bg-violet-500/10 text-violet-700 ring-1 ring-inset ring-violet-500/20 dark:text-violet-400",
+  personal: NEUTRAL_TINT,
+  errands: "bg-lime-500/10 text-lime-700 ring-1 ring-inset ring-lime-500/20 dark:text-lime-400",
 };
 
 export function categoryColor(category: string): string {
-  const palette: Record<string, string> = {
-    internship: "bg-indigo-100 text-indigo-800",
-    OA: "bg-pink-100 text-pink-800",
-    interview: "bg-teal-100 text-teal-800",
-    LeetCode: "bg-amber-100 text-amber-800",
-    school: "bg-cyan-100 text-cyan-800",
-    project: "bg-violet-100 text-violet-800",
-    personal: "bg-neutral-100 text-neutral-700",
-    errands: "bg-lime-100 text-lime-800",
-  };
-  return palette[category] || "bg-neutral-100 text-neutral-700";
+  return CATEGORY_STYLES[category] || NEUTRAL_TINT;
 }

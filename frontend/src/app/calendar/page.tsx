@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { onTasksChanged } from "@/lib/events";
 import { todayIso } from "@/lib/format";
 import type { Task } from "@/lib/types";
+import { BUTTON_GHOST_SM, FAINT } from "@/lib/ui";
 
 function pad(n: number) {
   return String(n).padStart(2, "0");
@@ -69,21 +70,21 @@ export default function CalendarPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Calendar</h1>
         <div className="flex items-center gap-2 text-sm">
-          <button onClick={() => shiftMonth(-1)} className="px-2 py-1 rounded border border-neutral-200 hover:bg-neutral-100">
+          <button onClick={() => shiftMonth(-1)} className={BUTTON_GHOST_SM}>
             ←
           </button>
-          <span className="font-medium w-36 text-center">{monthLabel}</span>
-          <button onClick={() => shiftMonth(1)} className="px-2 py-1 rounded border border-neutral-200 hover:bg-neutral-100">
+          <span className="w-36 text-center font-medium">{monthLabel}</span>
+          <button onClick={() => shiftMonth(1)} className={BUTTON_GHOST_SM}>
             →
           </button>
         </div>
       </div>
 
-      {loading && <p className="text-sm text-neutral-400">Loading…</p>}
+      {loading && <p className={`text-sm ${FAINT}`}>Loading…</p>}
 
       <div className="grid grid-cols-7 gap-1.5 text-xs">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="text-center text-neutral-400 font-medium pb-1">
+          <div key={d} className={`pb-1 text-center font-medium ${FAINT}`}>
             {d}
           </div>
         ))}
@@ -95,27 +96,37 @@ export default function CalendarPage() {
             <div
               key={idx}
               className={`min-h-[86px] rounded-lg border p-1.5 ${
-                day ? "bg-white border-neutral-200" : "bg-transparent border-transparent"
-              } ${isToday ? "ring-2 ring-neutral-900" : ""}`}
+                day
+                  ? "border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900"
+                  : "border-transparent bg-transparent"
+              } ${isToday ? "ring-2 ring-indigo-500" : ""}`}
             >
               {day && (
                 <>
-                  <div className="text-xs text-neutral-400 mb-1">{day}</div>
+                  <div className={`mb-1 text-xs ${FAINT}`}>{day}</div>
                   <div className="space-y-0.5">
                     {dayTasks.slice(0, 3).map((t) => (
-                      <div key={t.id} className="text-[11px] truncate flex items-center gap-1">
+                      <div key={t.id} className="flex items-center gap-1 truncate text-[11px]">
                         <span
-                          className={`inline-block h-1.5 w-1.5 rounded-full shrink-0 ${
-                            t.status === "completed" ? "bg-green-400" : "bg-neutral-400"
+                          className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                            t.status === "completed"
+                              ? "bg-green-400"
+                              : "bg-neutral-400 dark:bg-neutral-600"
                           }`}
                         />
-                        <span className={t.status === "completed" ? "line-through text-neutral-400" : ""}>
+                        <span
+                          className={
+                            t.status === "completed"
+                              ? `line-through ${FAINT}`
+                              : "text-neutral-700 dark:text-neutral-300"
+                          }
+                        >
                           {t.title}
                         </span>
                       </div>
                     ))}
                     {dayTasks.length > 3 && (
-                      <div className="text-[11px] text-neutral-400">+{dayTasks.length - 3} more</div>
+                      <div className={`text-[11px] ${FAINT}`}>+{dayTasks.length - 3} more</div>
                     )}
                   </div>
                 </>
@@ -124,7 +135,6 @@ export default function CalendarPage() {
           );
         })}
       </div>
-
     </div>
   );
 }

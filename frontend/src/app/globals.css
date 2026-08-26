@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
-/* This app only ships a light theme. Without this, form controls (date/time
-   pickers, scrollbars) follow the OS dark-mode preference by default and
-   end up mismatched against our light UI. */
+/* Class-based dark mode: `dark:` utilities match when the element is
+   inside (or is) something with class "dark", not just OS preference —
+   needed so the manual toggle in ThemeToggle can override the system
+   default. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { useTaskListState } from "@/lib/useTasks";
 import { SEED_CATEGORIES, type Task, type TaskPriority, type TaskStatus } from "@/lib/types";
+import { BUTTON_PRIMARY, CARD_LIST, FAINT, FIELD } from "@/lib/ui";
 import TaskRow from "@/components/TaskRow";
 import TaskEditModal from "@/components/TaskEditModal";
 
@@ -36,10 +37,7 @@ export default function AllTasksPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">All Tasks</h1>
-        <button
-          onClick={() => setCreating(true)}
-          className="text-sm px-3 py-1.5 rounded-lg bg-neutral-900 text-white hover:bg-neutral-700"
-        >
+        <button onClick={() => setCreating(true)} className={BUTTON_PRIMARY}>
           + New task
         </button>
       </div>
@@ -49,12 +47,12 @@ export default function AllTasksPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search title, description, notes…"
-          className="flex-1 min-w-[200px] border border-neutral-200 rounded-lg px-3 py-1.5 text-sm"
+          className={`min-w-[200px] flex-1 py-1.5 ${FIELD}`}
         />
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="border border-neutral-200 rounded-lg px-2 py-1.5 text-sm"
+          className={`py-1.5 ${FIELD}`}
         >
           <option value="">All statuses</option>
           {STATUSES.map((s) => (
@@ -66,7 +64,7 @@ export default function AllTasksPage() {
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          className="border border-neutral-200 rounded-lg px-2 py-1.5 text-sm"
+          className={`py-1.5 ${FIELD}`}
         >
           <option value="">All priorities</option>
           {PRIORITIES.map((p) => (
@@ -78,7 +76,7 @@ export default function AllTasksPage() {
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="border border-neutral-200 rounded-lg px-2 py-1.5 text-sm"
+          className={`py-1.5 ${FIELD}`}
         >
           <option value="">All categories</option>
           {SEED_CATEGORIES.map((c) => (
@@ -89,12 +87,12 @@ export default function AllTasksPage() {
         </select>
       </div>
 
-      {loading && <p className="text-sm text-neutral-400">Loading…</p>}
+      {loading && <p className={`text-sm ${FAINT}`}>Loading…</p>}
       {!loading && tasks.length === 0 && (
-        <p className="text-sm text-neutral-400">No tasks match these filters.</p>
+        <p className={`text-sm ${FAINT}`}>No tasks match these filters.</p>
       )}
 
-      <ul className="divide-y divide-neutral-100 bg-white rounded-xl border border-neutral-200">
+      <ul className={CARD_LIST}>
         {tasks.map((t) => (
           <TaskRow
             key={t.id}

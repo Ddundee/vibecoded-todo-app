@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { notifyTasksChanged } from "@/lib/events";
 import { relativeDueLabel } from "@/lib/format";
 import type { Task } from "@/lib/types";
+import { BUTTON_GHOST_SM } from "@/lib/ui";
 import { CategoryBadge, PriorityBadge, StatusBadge, UrgencyBadge } from "./Badges";
 
 interface Props {
@@ -57,7 +58,7 @@ export default function TaskRow({ task, onUpdated, onDeleted, onEdit }: Props) {
   }
 
   return (
-    <li className="flex items-start gap-3 py-2.5 px-3 hover:bg-neutral-50 rounded-lg group">
+    <li className="flex items-start gap-3 py-2.5 px-3 rounded-lg group hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
       <button
         onClick={toggleComplete}
         disabled={busy}
@@ -65,7 +66,7 @@ export default function TaskRow({ task, onUpdated, onDeleted, onEdit }: Props) {
         className={`mt-0.5 h-5 w-5 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors ${
           isDone
             ? "bg-green-500 border-green-500 text-white"
-            : "border-neutral-300 hover:border-green-500"
+            : "border-neutral-300 hover:border-green-500 dark:border-neutral-600"
         }`}
       >
         {isDone && (
@@ -82,7 +83,11 @@ export default function TaskRow({ task, onUpdated, onDeleted, onEdit }: Props) {
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
           <span
-            className={`text-sm font-medium ${isDone ? "line-through text-neutral-400" : "text-neutral-900"}`}
+            className={`text-sm font-medium ${
+              isDone
+                ? "line-through text-neutral-400 dark:text-neutral-600"
+                : "text-neutral-900 dark:text-neutral-100"
+            }`}
           >
             {task.title}
           </span>
@@ -95,20 +100,20 @@ export default function TaskRow({ task, onUpdated, onDeleted, onEdit }: Props) {
             <UrgencyBadge urgency={task.oa_urgency} />
           )}
           {task.recurrence_rule_id && (
-            <span className="text-xs text-neutral-400" title="Recurring task">
+            <span className="text-xs text-neutral-400 dark:text-neutral-600" title="Recurring task">
               ↻
             </span>
           )}
         </div>
         {task.recruiting?.company && (
-          <div className="text-xs text-neutral-500 mt-0.5">
+          <div className="text-xs text-neutral-500 mt-0.5 dark:text-neutral-400">
             {task.recruiting.company}
             {task.recruiting.position ? ` · ${task.recruiting.position}` : ""}
           </div>
         )}
-        <div className="flex items-center gap-2 mt-0.5 text-xs text-neutral-500">
+        <div className="flex items-center gap-2 mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
           {task.due_date && (
-            <span className={task.is_overdue ? "text-red-600 font-medium" : ""}>
+            <span className={task.is_overdue ? "font-medium text-red-600 dark:text-red-400" : ""}>
               {relativeDueLabel(task.due_date)}
               {task.due_time ? ` at ${task.due_time.slice(0, 5)}` : ""}
             </span>
@@ -121,23 +126,20 @@ export default function TaskRow({ task, onUpdated, onDeleted, onEdit }: Props) {
         <button
           onClick={togglePlanToday}
           disabled={busy}
-          className="text-xs px-2 py-1 rounded border border-neutral-200 hover:bg-neutral-100 text-neutral-600"
+          className={BUTTON_GHOST_SM}
           title={task.planned_for_date ? "Remove from today" : "Plan for today"}
         >
           {task.planned_for_date ? "− Today" : "+ Today"}
         </button>
         {onEdit && (
-          <button
-            onClick={() => onEdit(task)}
-            className="text-xs px-2 py-1 rounded border border-neutral-200 hover:bg-neutral-100 text-neutral-600"
-          >
+          <button onClick={() => onEdit(task)} className={BUTTON_GHOST_SM}>
             Edit
           </button>
         )}
         <button
           onClick={remove}
           disabled={busy}
-          className="text-xs px-2 py-1 rounded border border-neutral-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-neutral-400"
+          className="text-xs px-2 py-1 rounded-md text-neutral-400 hover:bg-red-500/10 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-400"
         >
           Delete
         </button>

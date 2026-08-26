@@ -4,7 +4,7 @@ import type { OAUrgency, TaskPriority, TaskStatus } from "@/lib/types";
 function Badge({ className, children }: { className: string; children: React.ReactNode }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium whitespace-nowrap ${className}`}
+      className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-medium whitespace-nowrap ${className}`}
     >
       {children}
     </span>
@@ -31,13 +31,5 @@ export function UrgencyBadge({ urgency }: { urgency: OAUrgency }) {
 }
 
 export function CategoryBadge({ category }: { category: string }) {
-  return (
-    <span
-      className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium whitespace-nowrap ${categoryColor(
-        category
-      )}`}
-    >
-      {category}
-    </span>
-  );
+  return <Badge className={categoryColor(category)}>{category}</Badge>;
 }

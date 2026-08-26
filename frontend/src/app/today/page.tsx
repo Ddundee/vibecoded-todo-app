@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { onTasksChanged } from "@/lib/events";
 import { formatDateLong } from "@/lib/format";
 import type { Task, TodayView } from "@/lib/types";
+import { CARD_LIST, FAINT, MUTED, SECTION_HEADING } from "@/lib/ui";
 import TaskRow from "@/components/TaskRow";
 
 function Section({
@@ -21,10 +22,10 @@ function Section({
   if (tasks.length === 0) return null;
   return (
     <section>
-      <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-1 px-3">
-        {title} <span className="text-neutral-300 font-normal">({tasks.length})</span>
+      <h2 className={SECTION_HEADING}>
+        {title} <span className="font-normal text-neutral-300 dark:text-neutral-600">({tasks.length})</span>
       </h2>
-      <ul className="divide-y divide-neutral-100 bg-white rounded-xl border border-neutral-200">
+      <ul className={CARD_LIST}>
         {tasks.map((t) => (
           <TaskRow key={t.id} task={t} onUpdated={onUpdated} onDeleted={onDeleted} />
         ))}
@@ -59,7 +60,7 @@ export default function TodayPage() {
     return (id: string) => patch(section, (tasks) => tasks.filter((t) => t.id !== id));
   }
 
-  if (loading && !view) return <p className="text-sm text-neutral-400">Loading…</p>;
+  if (loading && !view) return <p className={`text-sm ${FAINT}`}>Loading…</p>;
   if (!view) return null;
 
   const nothingToShow =
@@ -72,11 +73,11 @@ export default function TodayPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Today</h1>
-        <p className="text-sm text-neutral-500">{formatDateLong(view.date)}</p>
+        <p className={`text-sm ${MUTED}`}>{formatDateLong(view.date)}</p>
       </div>
 
       {nothingToShow && (
-        <p className="text-sm text-neutral-400">
+        <p className={`text-sm ${FAINT}`}>
           Nothing planned yet — use quick add above, or plan a task for today from Inbox / All
           Tasks.
         </p>

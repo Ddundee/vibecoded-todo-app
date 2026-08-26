@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { onTasksChanged } from "@/lib/events";
 import { relativeDueLabel } from "@/lib/format";
 import type { Task } from "@/lib/types";
+import { CARD_LIST, FAINT, SECTION_HEADING } from "@/lib/ui";
 import TaskRow from "@/components/TaskRow";
 
 export default function UpcomingPage() {
@@ -46,14 +47,14 @@ export default function UpcomingPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold">Upcoming</h1>
-      {loading && <p className="text-sm text-neutral-400">Loading…</p>}
+      {loading && <p className={`text-sm ${FAINT}`}>Loading…</p>}
 
       {overdue.length > 0 && (
         <section>
-          <h2 className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-1 px-3">
+          <h2 className="mb-1 px-3 text-sm font-semibold uppercase tracking-wide text-red-600 dark:text-red-400">
             Overdue ({overdue.length})
           </h2>
-          <ul className="divide-y divide-neutral-100 bg-white rounded-xl border border-red-200">
+          <ul className="divide-y divide-neutral-100 rounded-xl border border-red-200 bg-white dark:divide-neutral-800 dark:border-red-900/50 dark:bg-neutral-900">
             {overdue.map((t) => (
               <TaskRow key={t.id} task={t} {...overdueHandlers} />
             ))}
@@ -63,10 +64,8 @@ export default function UpcomingPage() {
 
       {sortedKeys.map((key) => (
         <section key={key}>
-          <h2 className="text-sm font-semibold text-neutral-500 uppercase tracking-wide mb-1 px-3">
-            {relativeDueLabel(key)}
-          </h2>
-          <ul className="divide-y divide-neutral-100 bg-white rounded-xl border border-neutral-200">
+          <h2 className={SECTION_HEADING}>{relativeDueLabel(key)}</h2>
+          <ul className={CARD_LIST}>
             {groups.get(key)!.map((t) => (
               <TaskRow key={t.id} task={t} {...upcomingHandlers} />
             ))}
@@ -75,7 +74,7 @@ export default function UpcomingPage() {
       ))}
 
       {!loading && overdue.length === 0 && upcoming.length === 0 && (
-        <p className="text-sm text-neutral-400">Nothing due in the next 14 days.</p>
+        <p className={`text-sm ${FAINT}`}>Nothing due in the next 14 days.</p>
       )}
     </div>
   );
