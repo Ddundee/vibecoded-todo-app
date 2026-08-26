@@ -10,7 +10,7 @@ asked for, plus two additions explained below:
 | `id`, `title`, `description` | |
 | `status` | `inbox`, `todo`, `in_progress`, `blocked`, `completed`, `cancelled` |
 | `priority` | `critical`, `high`, `medium`, `low` — manually set, never overwritten by scoring |
-| `category` | free-text string, seeded with `internship`, `OA`, `interview`, `LeetCode`, `school`, `project`, `personal`, `errands` |
+| `category` | free-text string, seeded with `LeetCode`, `school`, `project`, `personal`, `errands` |
 | `tags` | list of strings (JSON column) |
 | `created_at`, `updated_at`, `completed_at` | |
 | `due_date`, `due_time` | the actual deadline |
@@ -21,8 +21,7 @@ asked for, plus two additions explained below:
 | `recurrence_rule_id`, `occurrence_date` *(addition)* | links a generated occurrence back to its `RecurrenceRule` template |
 
 Computed, not stored (recomputed on every read so they can't go stale):
-`is_overdue`, `priority_score`, `priority_reasons`, `oa_urgency`,
-`oa_days_remaining`.
+`is_overdue`, `priority_score`, `priority_reasons`.
 
 ## RecurrenceRule
 
@@ -39,28 +38,6 @@ Patterns: `daily`, `weekdays`, `weekly` (every 7 days from `start_date`),
 `specific_days` (explicit weekday list), `monthly` (day-of-month),
 `custom_interval` (every N days from `start_date`).
 
-## RecruitingDetail
-
-A separate table, 1:1 with `Task` via `task_id`, so the generic task model
-stays clean for non-recruiting tasks. Holds `company`, `position`,
-`application_url`, `application_status`, `applied_date`, `recruiter`,
-`oa_received_date`, `oa_deadline`, `interview_date`, `interview_stage`,
-and `prep_notes` (kept distinct from the task's general `notes`).
-
-`application_status`: `discovered`, `planning_to_apply`, `applied`, `OA`,
-`interview`, `final_round`, `offer`, `rejected`, `withdrawn`.
-
-## OA urgency
-
-Computed from `oa_deadline` + current time (`services/oa.py`), completely
-independent of the task's manual `priority`:
-
-- **expired** — deadline has passed
-- **critical** — due within 24 hours
-- **high** — due within 3 days
-- **upcoming** — due within 7 days
-- **normal** — further out, or no deadline set, or already completed
-
 ## Priority score
 
 `services/priority.py` computes a score for "what should I work on next"
@@ -76,8 +53,6 @@ writes back to `task.priority`.**
 | Due within 3 days | +15 |
 | Due within 7 days | +5 |
 | Planned for today | +20 |
-| Recruiting category (`OA`/`interview` +10, `internship` +5) | |
-| OA urgency (critical +40 / high +20 / upcoming +8) | |
 | Quick win (≤15 min estimated) | +5 |
 | Large effort (>120 min estimated) | −5 |
 | Blocked status | −15 |

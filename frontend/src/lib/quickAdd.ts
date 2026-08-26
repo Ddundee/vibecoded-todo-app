@@ -14,14 +14,6 @@ const WEEKDAYS: Record<string, number> = {
 };
 
 const CATEGORY_KEYWORDS: Record<string, string> = {
-  oa: "OA",
-  oas: "OA",
-  "online assessment": "OA",
-  internship: "internship",
-  internships: "internship",
-  intern: "internship",
-  interview: "interview",
-  interviews: "interview",
   leetcode: "LeetCode",
   dsa: "LeetCode",
   school: "school",
@@ -85,7 +77,7 @@ export interface ParsedQuickAdd {
 
 /**
  * Best-effort local parser for quick task entry, e.g.
- * "Akuna C++ OA due Sept 18 high priority". No AI/LLM involved — if
+ * "Finish problem set 3 due Sept 18 high priority". No AI/LLM involved — if
  * nothing structured is recognized the whole string just becomes the
  * title of a new inbox task, which is always a safe fallback.
  */

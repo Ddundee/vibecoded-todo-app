@@ -1,4 +1,4 @@
-import type { OAUrgency, TaskPriority, TaskStatus } from "./types";
+import type { TaskPriority, TaskStatus } from "./types";
 
 export function todayIso(): string {
   const d = new Date();
@@ -82,19 +82,7 @@ export const STATUS_STYLES: Record<TaskStatus, string> = {
   cancelled: `${NEUTRAL_TINT} line-through opacity-70`,
 };
 
-export const URGENCY_STYLES: Record<OAUrgency, string> = {
-  expired: NEUTRAL_TINT,
-  critical: RED_TINT,
-  high: ORANGE_TINT,
-  upcoming: YELLOW_TINT,
-  normal: NEUTRAL_TINT,
-};
-
 const CATEGORY_STYLES: Record<string, string> = {
-  internship:
-    "bg-indigo-500/10 text-indigo-700 ring-1 ring-inset ring-indigo-500/20 dark:text-indigo-400",
-  OA: "bg-pink-500/10 text-pink-700 ring-1 ring-inset ring-pink-500/20 dark:text-pink-400",
-  interview: "bg-teal-500/10 text-teal-700 ring-1 ring-inset ring-teal-500/20 dark:text-teal-400",
   LeetCode:
     "bg-amber-500/10 text-amber-700 ring-1 ring-inset ring-amber-500/20 dark:text-amber-400",
   school: "bg-cyan-500/10 text-cyan-700 ring-1 ring-inset ring-cyan-500/20 dark:text-cyan-400",

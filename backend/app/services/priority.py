@@ -14,26 +14,12 @@ from typing import List
 
 from app.models.enums import TaskPriority, TaskStatus
 from app.models.task import Task
-from app.services.oa import compute_oa_urgency
 
 _PRIORITY_WEIGHTS = {
     TaskPriority.critical: 100.0,
     TaskPriority.high: 70.0,
     TaskPriority.medium: 40.0,
     TaskPriority.low: 15.0,
-}
-
-_URGENCY_WEIGHTS = {
-    "expired": 40.0,
-    "critical": 40.0,
-    "high": 20.0,
-    "upcoming": 8.0,
-}
-
-_RECRUITING_CATEGORY_BOOST = {
-    "OA": 10.0,
-    "interview": 10.0,
-    "internship": 5.0,
 }
 
 
@@ -76,22 +62,6 @@ def compute_priority(task: Task, today: date) -> PriorityResult:
     if task.planned_for_date == today:
         score += 20.0
         reasons.append("Planned for today (+20)")
-
-    category_boost = _RECRUITING_CATEGORY_BOOST.get(task.category)
-    if category_boost:
-        score += category_boost
-        reasons.append(f"Category '{task.category}' recruiting boost (+{category_boost:.0f})")
-
-    if task.recruiting_detail and task.recruiting_detail.oa_deadline:
-        urgency = compute_oa_urgency(
-            task.recruiting_detail.oa_deadline,
-            today,
-            completed=task.status == TaskStatus.completed,
-        )
-        weight = _URGENCY_WEIGHTS.get(urgency.value, 0.0)
-        if weight:
-            score += weight
-            reasons.append(f"OA urgency '{urgency.value}' (+{weight:.0f})")
 
     if task.estimated_duration is not None:
         if task.estimated_duration <= 15:

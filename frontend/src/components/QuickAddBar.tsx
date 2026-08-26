@@ -38,7 +38,7 @@ export default function QuickAddBar({ onCreated }: { onCreated?: (task: Task) =>
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder='Quick add… e.g. "Akuna C++ OA due Sept 18 high priority"'
+          placeholder='Quick add… e.g. "Finish problem set 3 due Sept 18 high priority"'
           className={`flex-1 py-2 ${FIELD}`}
         />
         <button type="submit" disabled={busy || !value.trim()} className={`shrink-0 ${BUTTON_PRIMARY}`}>

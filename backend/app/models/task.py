@@ -1,15 +1,12 @@
 import uuid
 from datetime import date, datetime, time
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional
 
 from sqlalchemy import Column, JSON, String
 from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.enums import RecurrencePattern, TaskPriority, TaskStatus
 from app.utils import utcnow
-
-if TYPE_CHECKING:
-    from app.models.recruiting import RecruitingDetail
 
 
 def _uuid() -> str:
@@ -100,7 +97,3 @@ class Task(SQLModel, table=True):
     occurrence_date: Optional[date] = Field(default=None, index=True)
 
     recurrence_rule: Optional[RecurrenceRule] = Relationship(back_populates="occurrences")
-    recruiting_detail: Optional["RecruitingDetail"] = Relationship(
-        back_populates="task",
-        sa_relationship_kwargs={"uselist": False, "cascade": "all, delete-orphan"},
-    )

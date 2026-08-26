@@ -30,16 +30,9 @@ from sqlmodel import Session
 from app import db
 from app.config import get_settings
 from app.logging_config import configure_logging
-from app.models.enums import ApplicationStatus, RecurrencePattern, TaskPriority, TaskStatus
-from app.schemas import (
-    InternshipApplicationCreate,
-    OACreate,
-    RecurringTaskCreate,
-    TaskCreate,
-    TaskUpdate,
-)
+from app.models.enums import RecurrencePattern, TaskPriority, TaskStatus
+from app.schemas import RecurringTaskCreate, TaskCreate, TaskUpdate
 from app.security import constant_time_equals
-from app.services import recruiting as recruiting_service
 from app.services import recurrence as recurrence_service
 from app.services import tasks as tasks_service
 from app.services.priority import rank_tasks
@@ -52,12 +45,10 @@ mcp = MCPServer(
     name="personal-task-manager",
     version="1.0.0",
     instructions=(
-        "Tools for managing the user's personal tasks: internship "
-        "applications, OAs, interviews, LeetCode/DSA practice, school "
-        "assignments, projects, errands, and recurring daily goals. Prefer "
-        "the specific tool for a job (e.g. create_oa for an OA, not "
-        "create_task) so structured recruiting fields get captured. Dates "
-        "are ISO 'YYYY-MM-DD', times are 'HH:MM' 24-hour."
+        "Tools for managing the user's personal tasks: LeetCode/DSA "
+        "practice, school assignments, projects, errands, and recurring "
+        "daily goals. Dates are ISO 'YYYY-MM-DD', times are 'HH:MM' "
+        "24-hour."
     ),
 )
 
@@ -111,8 +102,9 @@ def get_tasks(
     include_completed: bool = True,
 ) -> List[dict]:
     """List tasks with optional filters. status/priority are single values
-    (e.g. 'todo', 'high'); category is free text (e.g. 'internship', 'OA',
-    'LeetCode', 'school'); due_before/due_after are ISO dates."""
+    (e.g. 'todo', 'high'); category is free text (e.g. 'LeetCode',
+    'school', 'project', 'personal', 'errands'); due_before/due_after are
+    ISO dates."""
     with _session() as session:
         tasks = tasks_service.list_tasks(
             session,
@@ -129,7 +121,7 @@ def get_tasks(
 
 @mcp.tool()
 def get_task(task_id: str) -> dict:
-    """Get a single task by id, including recruiting details if present."""
+    """Get a single task by id."""
     with _session() as session:
         task = tasks_service.get_task(session, task_id)
         return _task_dict(task) if task else _not_found(task_id)
@@ -148,43 +140,6 @@ def get_upcoming_tasks(days: int = 7) -> List[dict]:
     """Get tasks due within the next N days (default 7), soonest first."""
     with _session() as session:
         return _tasks_list(tasks_service.get_upcoming(session, days=days))
-
-
-@mcp.tool()
-def get_oa_deadlines() -> List[dict]:
-    """Get every online-assessment (OA) task with company, deadline, days
-    remaining, and computed urgency: 'critical' (<24h), 'high' (<3 days),
-    'upcoming' (<7 days), 'normal', or 'expired'."""
-    with _session() as session:
-        items = recruiting_service.get_oa_deadlines(session)
-        return [
-            {
-                "task_id": item["task"].id,
-                "company": item["company"],
-                "oa_name": item["oa_name"],
-                "received_date": item["received_date"].isoformat()
-                if item["received_date"]
-                else None,
-                "deadline": item["deadline"].isoformat() if item["deadline"] else None,
-                "days_remaining": item["days_remaining"],
-                "urgency": item["urgency"].value,
-                "completed": item["completed"],
-            }
-            for item in items
-        ]
-
-
-@mcp.tool()
-def get_recruiting_pipeline() -> List[dict]:
-    """Get all recruiting-related tasks (internship/OA/interview) grouped by
-    application status: discovered, planning_to_apply, applied, OA,
-    interview, final_round, offer, rejected, withdrawn."""
-    with _session() as session:
-        stages = recruiting_service.get_recruiting_pipeline(session)
-        return [
-            {"status": s["status"].value, "count": s["count"], "tasks": _tasks_list(s["tasks"])}
-            for s in stages
-        ]
 
 
 @mcp.tool()
@@ -216,10 +171,10 @@ def get_week_summary(start_date: Optional[str] = None) -> dict:
 @mcp.tool()
 def get_priority_ranked_tasks(limit: int = 10) -> List[dict]:
     """Get open tasks ordered by a computed, explainable priority score
-    (deadline proximity, manual priority, OA urgency, planned-for-today
-    status, category, effort). Each result includes `priority_reasons`.
-    Use this to answer 'what should I work on next/tonight'. This never
-    changes any task's manually-set priority."""
+    (deadline proximity, manual priority, planned-for-today status,
+    effort). Each result includes `priority_reasons`. Use this to answer
+    'what should I work on next/tonight'. This never changes any task's
+    manually-set priority."""
     with _session() as session:
         open_tasks = tasks_service.list_tasks(session, include_completed=False)
         ranked = rank_tasks(open_tasks, local_today())[:limit]
@@ -274,62 +229,6 @@ def create_task(
 
 
 @mcp.tool()
-def create_oa(
-    company: str,
-    oa_name: Optional[str] = None,
-    received_date: Optional[str] = None,
-    deadline: Optional[str] = None,
-    priority: str = "high",
-    prep_notes: Optional[str] = None,
-    estimated_duration: Optional[int] = None,
-) -> dict:
-    """Create an Online Assessment (OA) tracking task for a company, with
-    received date and deadline. Urgency is computed automatically from the
-    deadline."""
-    with _session() as session:
-        payload = OACreate(
-            company=company,
-            oa_name=oa_name,
-            received_date=date.fromisoformat(received_date) if received_date else None,
-            deadline=date.fromisoformat(deadline) if deadline else None,
-            priority=TaskPriority(priority),
-            prep_notes=prep_notes,
-            estimated_duration=estimated_duration,
-        )
-        return _task_dict(recruiting_service.create_oa(session, payload))
-
-
-@mcp.tool()
-def create_internship_application(
-    company: str,
-    position: Optional[str] = None,
-    application_url: Optional[str] = None,
-    application_status: str = "planning_to_apply",
-    applied_date: Optional[str] = None,
-    recruiter: Optional[str] = None,
-    due_date: Optional[str] = None,
-    priority: str = "medium",
-    notes: Optional[str] = None,
-) -> dict:
-    """Create an internship application tracking task with recruiting
-    metadata. application_status is one of: discovered, planning_to_apply,
-    applied, OA, interview, final_round, offer, rejected, withdrawn."""
-    with _session() as session:
-        payload = InternshipApplicationCreate(
-            company=company,
-            position=position,
-            application_url=application_url,
-            application_status=ApplicationStatus(application_status),
-            applied_date=date.fromisoformat(applied_date) if applied_date else None,
-            recruiter=recruiter,
-            due_date=date.fromisoformat(due_date) if due_date else None,
-            priority=TaskPriority(priority),
-            notes=notes,
-        )
-        return _task_dict(recruiting_service.create_internship_application(session, payload))
-
-
-@mcp.tool()
 def create_recurring_task(
     title: str,
     pattern: str,
@@ -344,8 +243,8 @@ def create_recurring_task(
     day_of_month: Optional[int] = None,
     end_date: Optional[str] = None,
 ) -> dict:
-    """Create a recurring task template, e.g. 'apply to 20 internships every
-    weekday' or 'solve 1-2 LeetCode problems daily'. pattern is one of:
+    """Create a recurring task template, e.g. 'solve 1-2 LeetCode problems
+    daily' or 'grocery shopping every Sunday'. pattern is one of:
     daily, weekdays, weekly, specific_days, monthly, custom_interval. For
     specific_days pass days_of_week as ints (0=Monday..6=Sunday). For
     custom_interval pass interval_days. For monthly pass day_of_month.
@@ -466,8 +365,7 @@ def set_task_priority(task_id: str, priority: str) -> dict:
 
 @mcp.tool()
 def add_task_note(task_id: str, note: str) -> dict:
-    """Append a timestamped note to a task (e.g. OA prep notes, interview
-    feedback)."""
+    """Append a timestamped note to a task."""
     with _session() as session:
         task = tasks_service.get_task(session, task_id)
         if task is None:
@@ -540,18 +438,6 @@ def resource_overdue() -> List[dict]:
 def resource_upcoming() -> List[dict]:
     """Tasks due in the next 7 days."""
     return get_upcoming_tasks()
-
-
-@mcp.resource("recruiting://oas")
-def resource_oas() -> List[dict]:
-    """All OA tasks with deadlines and computed urgency."""
-    return get_oa_deadlines()
-
-
-@mcp.resource("recruiting://pipeline")
-def resource_pipeline() -> List[dict]:
-    """Recruiting tasks grouped by application status."""
-    return get_recruiting_pipeline()
 
 
 # ---------------------------------------------------------------------------

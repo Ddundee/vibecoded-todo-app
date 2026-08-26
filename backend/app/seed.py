@@ -5,11 +5,11 @@ from datetime import timedelta
 
 from sqlmodel import Session, select
 
-from app.models.enums import RecurrencePattern, TaskPriority
+from app.models.enums import RecurrencePattern, TaskPriority, TaskStatus
 from app.models.task import Task
-from app.schemas import InternshipApplicationCreate, OACreate, RecurringTaskCreate
-from app.services import recruiting as recruiting_service
+from app.schemas import RecurringTaskCreate, TaskCreate
 from app.services import recurrence as recurrence_service
+from app.services import tasks as tasks_service
 from app.utils import local_today
 
 
@@ -20,24 +20,24 @@ def seed_demo_data(session: Session) -> None:
 
     today = local_today()
 
-    recruiting_service.create_oa(
+    tasks_service.create_task(
         session,
-        OACreate(
-            company="Roblox",
-            oa_name="Software Engineer OA",
-            received_date=today,
-            deadline=today + timedelta(days=3),
+        TaskCreate(
+            title="Finish problem set 3",
+            category="school",
+            status=TaskStatus.todo,
             priority=TaskPriority.high,
-            prep_notes="Review arrays/strings, 2 questions, 90 minutes.",
+            due_date=today + timedelta(days=3),
         ),
     )
-    recruiting_service.create_internship_application(
+    tasks_service.create_task(
         session,
-        InternshipApplicationCreate(
-            company="Akuna Capital",
-            position="Quant Dev Intern",
-            due_date=today + timedelta(days=7),
+        TaskCreate(
+            title="Set up the project's CI pipeline",
+            category="project",
+            status=TaskStatus.todo,
             priority=TaskPriority.medium,
+            estimated_duration=60,
         ),
     )
     recurrence_service.create_recurring_task(
@@ -53,10 +53,11 @@ def seed_demo_data(session: Session) -> None:
     recurrence_service.create_recurring_task(
         session,
         RecurringTaskCreate(
-            title="Apply to 20 internships",
-            category="internship",
-            priority=TaskPriority.high,
-            pattern=RecurrencePattern.weekdays,
+            title="Grocery shopping",
+            category="errands",
+            priority=TaskPriority.low,
+            pattern=RecurrencePattern.specific_days,
+            days_of_week=[6],  # Sunday
             start_date=today,
         ),
     )

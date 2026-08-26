@@ -6,7 +6,7 @@ import { notifyTasksChanged } from "@/lib/events";
 import { relativeDueLabel } from "@/lib/format";
 import type { Task } from "@/lib/types";
 import { BUTTON_GHOST_SM } from "@/lib/ui";
-import { CategoryBadge, PriorityBadge, StatusBadge, UrgencyBadge } from "./Badges";
+import { CategoryBadge, PriorityBadge, StatusBadge } from "./Badges";
 
 interface Props {
   task: Task;
@@ -96,21 +96,12 @@ export default function TaskRow({ task, onUpdated, onDeleted, onEdit }: Props) {
           {task.status !== "todo" && task.status !== "completed" && (
             <StatusBadge status={task.status} />
           )}
-          {task.oa_urgency && task.oa_urgency !== "normal" && (
-            <UrgencyBadge urgency={task.oa_urgency} />
-          )}
           {task.recurrence_rule_id && (
             <span className="text-xs text-neutral-400 dark:text-neutral-600" title="Recurring task">
               ↻
             </span>
           )}
         </div>
-        {task.recruiting?.company && (
-          <div className="text-xs text-neutral-500 mt-0.5 dark:text-neutral-400">
-            {task.recruiting.company}
-            {task.recruiting.position ? ` · ${task.recruiting.position}` : ""}
-          </div>
-        )}
         <div className="flex items-center gap-2 mt-0.5 text-xs text-neutral-500 dark:text-neutral-400">
           {task.due_date && (
             <span className={task.is_overdue ? "font-medium text-red-600 dark:text-red-400" : ""}>

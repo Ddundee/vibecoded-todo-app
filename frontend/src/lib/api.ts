@@ -1,6 +1,4 @@
 import type {
-  OADeadlineItem,
-  RecruitingPipelineStage,
   Task,
   TaskCreatePayload,
   TaskListResponse,
@@ -124,34 +122,4 @@ export const api = {
       }`,
       { method: "POST" }
     ),
-
-  createOA: (payload: {
-    company: string;
-    oa_name?: string;
-    received_date?: string;
-    deadline?: string;
-    priority?: string;
-    prep_notes?: string;
-    estimated_duration?: number;
-  }) => request<Task>("/api/recruiting/oas", { method: "POST", body: JSON.stringify(payload) }),
-
-  listOAs: () => request<OADeadlineItem[]>("/api/recruiting/oas"),
-
-  createApplication: (payload: {
-    company: string;
-    position?: string;
-    application_url?: string;
-    application_status?: string;
-    applied_date?: string;
-    recruiter?: string;
-    due_date?: string;
-    priority?: string;
-    notes?: string;
-  }) =>
-    request<Task>("/api/recruiting/applications", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
-
-  getPipeline: () => request<RecruitingPipelineStage[]>("/api/recruiting/pipeline"),
 };

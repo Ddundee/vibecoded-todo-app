@@ -119,8 +119,6 @@ the header.
 | `get_task` | Fetch a single task by id |
 | `get_overdue_tasks` | Every open task past its due date |
 | `get_upcoming_tasks` | Tasks due within the next N days (default 7) |
-| `get_oa_deadlines` | Every OA with received date, deadline, days remaining, urgency |
-| `get_recruiting_pipeline` | Recruiting tasks grouped by application status |
 | `search_tasks` | Full-text search over title/description/notes |
 | `get_week_summary` | Completed/created/overdue counts for a week |
 | `get_priority_ranked_tasks` | Open tasks ordered by computed priority score, with reasons |
@@ -130,8 +128,6 @@ the header.
 | Tool | Description |
 |---|---|
 | `create_task` | Generic task creation (only `title` required) |
-| `create_oa` | OA with company, received date, deadline |
-| `create_internship_application` | Internship application with recruiting metadata |
 | `create_recurring_task` | Recurring template (daily/weekdays/weekly/specific_days/monthly/custom_interval) |
 
 ### Updating
@@ -160,15 +156,12 @@ the header.
 | `tasks://today` | Same payload as `get_today` |
 | `tasks://overdue` | Same payload as `get_overdue_tasks` |
 | `tasks://upcoming` | Same payload as `get_upcoming_tasks` |
-| `recruiting://oas` | Same payload as `get_oa_deadlines` |
-| `recruiting://pipeline` | Same payload as `get_recruiting_pipeline` |
 
 ## Example prompts once connected
 
 - "What do I need to do today?"
-- "What OAs are due this week?"
-- "Add the Roblox OA and make it due Friday."
-- "Mark the Akuna OA as completed."
+- "Add a task to finish problem set 3, due Friday."
+- "Mark the CI pipeline task as completed."
 - "What should I prioritize tonight?"
 - "Move my unfinished low-priority tasks to tomorrow."
 - "What did I accomplish this week?"

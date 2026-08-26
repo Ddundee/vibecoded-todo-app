@@ -1,5 +1,5 @@
-import { categoryColor, PRIORITY_STYLES, STATUS_STYLES, URGENCY_STYLES } from "@/lib/format";
-import type { OAUrgency, TaskPriority, TaskStatus } from "@/lib/types";
+import { categoryColor, PRIORITY_STYLES, STATUS_STYLES } from "@/lib/format";
+import type { TaskPriority, TaskStatus } from "@/lib/types";
 
 function Badge({ className, children }: { className: string; children: React.ReactNode }) {
   return (
@@ -17,17 +17,6 @@ export function PriorityBadge({ priority }: { priority: TaskPriority }) {
 
 export function StatusBadge({ status }: { status: TaskStatus }) {
   return <Badge className={STATUS_STYLES[status]}>{status.replace("_", " ")}</Badge>;
-}
-
-export function UrgencyBadge({ urgency }: { urgency: OAUrgency }) {
-  const label: Record<OAUrgency, string> = {
-    expired: "Expired",
-    critical: "Critical · <24h",
-    high: "High · <3d",
-    upcoming: "Upcoming · <7d",
-    normal: "Normal",
-  };
-  return <Badge className={URGENCY_STYLES[urgency]}>{label[urgency]}</Badge>;
 }
 
 export function CategoryBadge({ category }: { category: string }) {

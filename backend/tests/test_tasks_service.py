@@ -19,18 +19,6 @@ def test_create_task_defaults_to_inbox(session):
     assert task.id is not None
 
 
-def test_create_task_with_recruiting_detail(session):
-    from app.schemas import RecruitingDetailIn
-
-    task = make_task(
-        session,
-        category="OA",
-        recruiting=RecruitingDetailIn(company="Roblox", oa_deadline=local_today()),
-    )
-    assert task.recruiting_detail is not None
-    assert task.recruiting_detail.company == "Roblox"
-
-
 def test_update_task_partial_fields_only(session):
     task = make_task(session, description="original")
     updated = tasks_service.update_task(session, task, TaskUpdate(title="New title"))
@@ -147,9 +135,9 @@ def test_carry_unfinished_forward_respects_priority_filter(session):
 
 
 def test_search_tasks_matches_title_and_notes(session):
-    make_task(session, title="Akuna Capital OA")
-    make_task(session, title="Unrelated task", notes="mentions Akuna in passing")
+    make_task(session, title="Finish quarterly report")
+    make_task(session, title="Unrelated task", notes="mentions quarterly in passing")
     make_task(session, title="Totally different")
 
-    results = tasks_service.search_tasks(session, "Akuna")
+    results = tasks_service.search_tasks(session, "quarterly")
     assert len(results) == 2

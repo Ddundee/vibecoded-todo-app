@@ -8,19 +8,6 @@ export type TaskStatus =
 
 export type TaskPriority = "critical" | "high" | "medium" | "low";
 
-export type OAUrgency = "expired" | "critical" | "high" | "upcoming" | "normal";
-
-export type ApplicationStatus =
-  | "discovered"
-  | "planning_to_apply"
-  | "applied"
-  | "OA"
-  | "interview"
-  | "final_round"
-  | "offer"
-  | "rejected"
-  | "withdrawn";
-
 export type RecurrencePattern =
   | "daily"
   | "weekdays"
@@ -29,32 +16,7 @@ export type RecurrencePattern =
   | "monthly"
   | "custom_interval";
 
-export const SEED_CATEGORIES = [
-  "internship",
-  "OA",
-  "interview",
-  "LeetCode",
-  "school",
-  "project",
-  "personal",
-  "errands",
-] as const;
-
-export interface RecruitingDetail {
-  id: string;
-  task_id: string;
-  company: string | null;
-  position: string | null;
-  application_url: string | null;
-  application_status: ApplicationStatus;
-  applied_date: string | null;
-  recruiter: string | null;
-  oa_received_date: string | null;
-  oa_deadline: string | null;
-  interview_date: string | null;
-  interview_stage: string | null;
-  prep_notes: string | null;
-}
+export const SEED_CATEGORIES = ["LeetCode", "school", "project", "personal", "errands"] as const;
 
 export interface Task {
   id: string;
@@ -80,9 +42,6 @@ export interface Task {
   is_overdue: boolean;
   priority_score: number;
   priority_reasons: string[];
-  oa_urgency: OAUrgency | null;
-  oa_days_remaining: number | null;
-  recruiting: RecruitingDetail | null;
 }
 
 export interface TaskListResponse {
@@ -97,23 +56,6 @@ export interface TodayView {
   overdue: Task[];
   recurring_today: Task[];
   suggested_high_priority: Task[];
-}
-
-export interface OADeadlineItem {
-  task: Task;
-  company: string | null;
-  oa_name: string;
-  received_date: string | null;
-  deadline: string | null;
-  days_remaining: number | null;
-  urgency: OAUrgency;
-  completed: boolean;
-}
-
-export interface RecruitingPipelineStage {
-  status: ApplicationStatus;
-  count: number;
-  tasks: Task[];
 }
 
 export interface WeekSummary {

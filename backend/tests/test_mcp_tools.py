@@ -29,25 +29,9 @@ def test_complete_task_tool(mcp_env):
     assert completed["status"] == "completed"
 
 
-def test_create_oa_tool_sets_urgency(mcp_env):
-    result = mcp_server.create_oa(
-        company="Roblox", oa_name="SWE OA", deadline=local_today().isoformat()
-    )
-    assert result["oa_urgency"] == "critical"
-
-
-def test_create_internship_application_tool(mcp_env):
-    result = mcp_server.create_internship_application(
-        company="Akuna Capital", position="Quant Dev Intern", application_status="applied"
-    )
-    assert result["category"] == "internship"
-    assert result["recruiting"]["company"] == "Akuna Capital"
-    assert result["recruiting"]["application_status"] == "applied"
-
-
 def test_create_recurring_task_tool_and_today_materializes_it(mcp_env):
     mcp_server.create_recurring_task(
-        title="Apply to 20 internships", pattern="weekdays", start_date=local_today().isoformat()
+        title="Solve 1-2 LeetCode problems", pattern="weekdays", start_date=local_today().isoformat()
     )
     today_bundle = mcp_server.get_today()
     # weekdays pattern may or may not fire today depending on which day tests run;
@@ -73,15 +57,15 @@ def test_get_priority_ranked_tasks_includes_reasons(mcp_env):
 
 
 def test_search_tasks_tool(mcp_env):
-    mcp_server.create_task(title="Akuna OA prep")
-    results = mcp_server.search_tasks("Akuna")
+    mcp_server.create_task(title="Finish quarterly report")
+    results = mcp_server.search_tasks("quarterly")
     assert len(results) == 1
 
 
 def test_add_task_note_tool(mcp_env):
     created = mcp_server.create_task(title="note me")
-    updated = mcp_server.add_task_note(created["id"], "reviewed with recruiter")
-    assert "reviewed with recruiter" in updated["notes"]
+    updated = mcp_server.add_task_note(created["id"], "checked in with the team")
+    assert "checked in with the team" in updated["notes"]
 
 
 def test_all_registered_tools_are_discoverable():
@@ -93,13 +77,9 @@ def test_all_registered_tools_are_discoverable():
         "get_task",
         "get_overdue_tasks",
         "get_upcoming_tasks",
-        "get_oa_deadlines",
-        "get_recruiting_pipeline",
         "search_tasks",
         "get_week_summary",
         "create_task",
-        "create_oa",
-        "create_internship_application",
         "create_recurring_task",
         "update_task",
         "complete_task",
@@ -121,6 +101,4 @@ def test_registered_resources_cover_required_uris():
         "tasks://today",
         "tasks://overdue",
         "tasks://upcoming",
-        "recruiting://oas",
-        "recruiting://pipeline",
     }.issubset(uris)

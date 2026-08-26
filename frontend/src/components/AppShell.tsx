@@ -12,7 +12,6 @@ const NAV = [
   { href: "/inbox", label: "Inbox" },
   { href: "/tasks", label: "All Tasks" },
   { href: "/upcoming", label: "Upcoming" },
-  { href: "/recruiting", label: "Recruiting" },
   { href: "/calendar", label: "Calendar" },
   { href: "/completed", label: "Completed" },
 ];

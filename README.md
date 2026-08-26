@@ -1,10 +1,9 @@
 # Personal Task Manager
 
 A self-hosted task manager that is the single source of truth for your
-tasks — internship applications, OAs, interview prep, LeetCode/DSA
-practice, school, projects, errands, and recurring goals — with a web UI
-and an MCP server so Claude, ChatGPT, Cursor, or any other MCP-compatible
-client can read and manage your tasks directly.
+tasks — LeetCode/DSA practice, school, projects, errands, and recurring
+goals — with a web UI and an MCP server so Claude, ChatGPT, Cursor, or any
+other MCP-compatible client can read and manage your tasks directly.
 
 Runs entirely on your own hardware (a Raspberry Pi or any Linux box) via
 Docker Compose. No external SaaS dependency, no required internet access
@@ -16,11 +15,11 @@ after setup, works over localhost, your LAN, or Tailscale.
 todo-app/
   backend/            FastAPI + SQLModel REST API and shared service layer
     app/
-      models/         Task, RecurrenceRule, RecruitingDetail, User
-      services/       business logic (CRUD, recurrence, priority, OA urgency, today view)
-      routers/        REST endpoints (auth/tasks/today/recurring/recruiting)
-    mcp_server/       MCP server (23 tools + 5 resources) — same DB, same service layer
-    tests/            pytest suite (71 tests)
+      models/         Task, RecurrenceRule, User
+      services/       business logic (CRUD, recurrence, priority, today view)
+      routers/        REST endpoints (auth/tasks/today/recurring)
+    mcp_server/       MCP server (19 tools + 3 resources) — same DB, same service layer
+    tests/            pytest suite (58 tests)
   frontend/           Next.js (App Router) web UI, proxies /api/* to the backend
   docker-compose.yml  db + backend + mcp + frontend
   scripts/            backup.sh / restore.sh
@@ -192,18 +191,17 @@ major version jump (`./scripts/backup.sh`).
 cd backend && .venv/bin/pytest -q
 ```
 
-71 tests cover task CRUD, every recurrence pattern, priority-score
-ordering (including that manual priority is never overwritten), OA
-urgency boundaries, today-view assembly (including recurring-task
-materialization and dedup across sections), and MCP tool execution
-end-to-end against an in-memory database.
+58 tests cover task CRUD, every recurrence pattern, priority-score
+ordering (including that manual priority is never overwritten),
+today-view assembly (including recurring-task materialization and dedup
+across sections), and MCP tool execution end-to-end against an in-memory
+database.
 
 ## V1 scope
 
-Implemented: persistent tasks, recurring tasks, Today view, OA tracking,
-recruiting pipeline, deadlines, computed (never-overwriting) priority
-scoring, web UI, REST API, 23 MCP tools + 5 MCP resources, Docker
-deployment, token + session auth, backups.
+Implemented: persistent tasks, recurring tasks, Today view, deadlines,
+computed (never-overwriting) priority scoring, web UI, REST API, 19 MCP
+tools + 3 MCP resources, Docker deployment, token + session auth, backups.
 
 Deliberately deferred to keep V1 focused (see `integrations/` note below):
 Gmail/Calendar/GitHub/Slack/Discord connectors, natural-language parsing
@@ -214,9 +212,7 @@ no AI API required for the app to work), and a full migration framework
 ## Future integrations
 
 The service layer (`backend/app/services/`) is the seam for future
-connectors: a Gmail integration, for example, would parse incoming mail
-for OA/interview/rejection signals and call the same
-`services.recruiting.create_oa` / `update_task` functions the MCP tools
-and REST routes already use, rather than writing to the database
-directly. No integration code exists yet in V1 — this is left as a clean
-extension point.
+connectors: an integration would call the same `services.tasks.*`
+functions the MCP tools and REST routes already use, rather than writing
+to the database directly. No integration code exists yet in V1 — this is
+left as a clean extension point.

@@ -4,11 +4,9 @@ from typing import List, Optional, Sequence
 from sqlmodel import Session, or_, select
 
 from app.models.enums import TaskPriority, TaskStatus
-from app.models.recruiting import RecruitingDetail
 from app.models.task import Task
-from app.schemas import RecruitingDetailIn, TaskCreate, TaskRead, TaskUpdate
+from app.schemas import TaskCreate, TaskRead, TaskUpdate
 from app.services import recurrence as recurrence_service
-from app.services.oa import compute_oa_urgency, days_remaining
 from app.services.priority import compute_priority
 from app.utils import local_today, utcnow
 
@@ -22,18 +20,6 @@ ACTIVE_STATUSES = (
 
 def _touch(task: Task) -> None:
     task.updated_at = utcnow()
-
-
-def _upsert_recruiting(session: Session, task: Task, data: RecruitingDetailIn) -> None:
-    detail = task.recruiting_detail
-    if detail is None:
-        detail = RecruitingDetail(task_id=task.id)
-        session.add(detail)
-
-    for field_name, value in data.model_dump(exclude_unset=True).items():
-        setattr(detail, field_name, value)
-
-    task.recruiting_detail = detail
 
 
 def create_task(session: Session, data: TaskCreate) -> Task:
@@ -53,11 +39,6 @@ def create_task(session: Session, data: TaskCreate) -> Task:
         planned_for_date=data.planned_for_date,
     )
     session.add(task)
-    session.flush()
-
-    if data.recruiting is not None:
-        _upsert_recruiting(session, task, data.recruiting)
-
     session.commit()
     session.refresh(task)
     return task
@@ -122,13 +103,10 @@ def search_tasks(session: Session, query_text: str) -> List[Task]:
 
 
 def update_task(session: Session, task: Task, data: TaskUpdate) -> Task:
-    updates = data.model_dump(exclude_unset=True, exclude={"recruiting"})
+    updates = data.model_dump(exclude_unset=True)
     for field_name, value in updates.items():
         setattr(task, field_name, value)
     _touch(task)
-
-    if data.recruiting is not None:
-        _upsert_recruiting(session, task, data.recruiting)
 
     session.add(task)
     session.commit()
@@ -363,35 +341,6 @@ def serialize_task(task: Task, today: Optional[date] = None) -> TaskRead:
         and task.status not in (TaskStatus.completed, TaskStatus.cancelled)
     )
 
-    oa_urgency = None
-    oa_days = None
-    if task.recruiting_detail and task.recruiting_detail.oa_deadline:
-        oa_urgency = compute_oa_urgency(
-            task.recruiting_detail.oa_deadline,
-            today,
-            completed=task.status == TaskStatus.completed,
-        )
-        oa_days = days_remaining(task.recruiting_detail.oa_deadline, today)
-
-    recruiting_read = None
-    if task.recruiting_detail:
-        d = task.recruiting_detail
-        recruiting_read = {
-            "id": d.id,
-            "task_id": d.task_id,
-            "company": d.company,
-            "position": d.position,
-            "application_url": d.application_url,
-            "application_status": d.application_status,
-            "applied_date": d.applied_date,
-            "recruiter": d.recruiter,
-            "oa_received_date": d.oa_received_date,
-            "oa_deadline": d.oa_deadline,
-            "interview_date": d.interview_date,
-            "interview_stage": d.interview_stage,
-            "prep_notes": d.prep_notes,
-        }
-
     return TaskRead(
         id=task.id,
         title=task.title,
@@ -415,7 +364,4 @@ def serialize_task(task: Task, today: Optional[date] = None) -> TaskRead:
         is_overdue=is_overdue,
         priority_score=priority_result.score,
         priority_reasons=priority_result.reasons,
-        oa_urgency=oa_urgency,
-        oa_days_remaining=oa_days,
-        recruiting=recruiting_read,
     )

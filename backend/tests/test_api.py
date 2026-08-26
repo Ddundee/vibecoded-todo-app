@@ -15,14 +15,14 @@ def test_tasks_endpoint_requires_auth(client):
 
 
 def test_create_and_fetch_task(client, auth_headers):
-    resp = client.post("/api/tasks", json={"title": "Apply to Akuna"}, headers=auth_headers)
+    resp = client.post("/api/tasks", json={"title": "Buy groceries"}, headers=auth_headers)
     assert resp.status_code == 201
     task = resp.json()
     assert task["status"] == "inbox"
 
     resp = client.get(f"/api/tasks/{task['id']}", headers=auth_headers)
     assert resp.status_code == 200
-    assert resp.json()["title"] == "Apply to Akuna"
+    assert resp.json()["title"] == "Buy groceries"
 
 
 def test_patch_task_updates_fields(client, auth_headers):
@@ -57,34 +57,6 @@ def test_overdue_endpoint(client, auth_headers):
     resp = client.get("/api/overdue", headers=auth_headers)
     assert resp.status_code == 200
     assert resp.json()["count"] == 1
-
-
-def test_create_oa_and_list_oas(client, auth_headers):
-    deadline = (local_today() + timedelta(days=2)).isoformat()
-    resp = client.post(
-        "/api/recruiting/oas",
-        json={"company": "Roblox", "oa_name": "SWE OA", "deadline": deadline},
-        headers=auth_headers,
-    )
-    assert resp.status_code == 201
-    assert resp.json()["oa_urgency"] == "high"
-
-    resp = client.get("/api/recruiting/oas", headers=auth_headers)
-    assert resp.status_code == 200
-    assert len(resp.json()) == 1
-    assert resp.json()[0]["company"] == "Roblox"
-
-
-def test_recruiting_pipeline_groups_by_status(client, auth_headers):
-    client.post(
-        "/api/recruiting/applications",
-        json={"company": "Jane Street", "application_status": "applied"},
-        headers=auth_headers,
-    )
-    resp = client.get("/api/recruiting/pipeline", headers=auth_headers)
-    assert resp.status_code == 200
-    stages = {s["status"]: s["count"] for s in resp.json()}
-    assert stages.get("applied") == 1
 
 
 def test_login_sets_session_cookie_and_grants_access(client):
