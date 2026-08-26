@@ -30,6 +30,12 @@ One Postgres database backs both the REST API (used by the web UI) and the
 MCP server — they're two processes sharing the same codebase and the same
 data, not two separate systems to keep in sync.
 
+Prebuilt multi-arch (amd64/arm64) images are published to Docker Hub as
+[`ddundee/todo-app-backend`](https://hub.docker.com/r/ddundee/todo-app-backend)
+and [`ddundee/todo-app-frontend`](https://hub.docker.com/r/ddundee/todo-app-frontend)
+on every push to `main` (see `.github/workflows/docker-publish.yml`), so
+`docker compose pull` works out of the box instead of building from source.
+
 See [`docs/TASK_MODEL.md`](docs/TASK_MODEL.md) for the data model and
 priority-scoring logic, [`docs/MCP.md`](docs/MCP.md) for the full list of
 MCP tools/resources and client setup, [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
@@ -165,8 +171,12 @@ Put `backup.sh` in cron for automatic daily backups:
 ```bash
 cd todo-app
 git pull
-docker compose up -d --build   # rebuilds changed images, restarts only those services
+docker compose pull            # grab the latest prebuilt images from Docker Hub
+docker compose up -d           # restarts only the services that changed
 ```
+
+(`docker compose up -d --build` also still works if you're running a fork
+without CI publishing images, or have local changes to build.)
 
 Your data isn't touched — it lives in the `postgres_data` named volume,
 independent of the containers/images. Back up first if you're doing a

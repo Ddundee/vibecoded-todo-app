@@ -65,6 +65,19 @@ IP instead).
 
 ## 4. Start the stack
 
+Images are published to Docker Hub (`ddundee/todo-app-backend`,
+`ddundee/todo-app-frontend`) by CI on every push to `main`, prebuilt for
+both `amd64` and `arm64` — pulling them is much faster than building on a
+Pi:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+If you've made local changes (or are running a fork without CI wired up),
+build from source instead:
+
 ```bash
 docker compose up -d --build
 ```
@@ -109,25 +122,47 @@ needed after a power cycle. Verify by rebooting once and checking
 ```bash
 cd todo-app
 git pull
-docker compose up -d --build
+docker compose pull   # grab the latest prebuilt images from Docker Hub
+docker compose up -d
 ```
 
-This only rebuilds and restarts services whose image actually changed.
-Your data is untouched (it lives in the `postgres_data` Docker volume,
-independent of the app containers). Take a backup first for anything
-bigger than a routine pull — see the root `README.md`.
+(Use `docker compose up -d --build` instead of `pull` if you're running a
+fork without the Docker Hub CI wired up, or have local changes.)
 
-## Multi-arch builds (cross-building from a non-ARM dev machine)
+This only restarts services whose image actually changed. Your data is
+untouched (it lives in the `postgres_data` Docker volume, independent of
+the app containers). Take a backup first for anything bigger than a
+routine pull — see the root `README.md`.
 
-If you're building the images on an amd64 machine and pushing to a
-registry the Pi pulls from, instead of building natively on the Pi, use
-`docker buildx` to target arm64 explicitly:
+## Docker Hub images and multi-arch builds
+
+`.github/workflows/docker-publish.yml` builds and pushes both images —
+`ddundee/todo-app-backend` and `ddundee/todo-app-frontend` — for
+`linux/amd64` and `linux/arm64` on every push to `main`, tagged `latest`
+and with the short commit SHA. That's what step 4 above pulls from.
+
+If you fork this repo and want your own images, set two repository
+secrets (Settings → Secrets and variables → Actions):
+
+- `DOCKERHUB_USERNAME` — your Docker Hub username
+- `DOCKERHUB_TOKEN` — a Docker Hub access token (hub.docker.com → Account
+  Settings → Security → New Access Token; Read & Write is enough)
+
+and update the `${DOCKERHUB_NAMESPACE:-ddundee}` default in
+`docker-compose.yml` to your own namespace (or set `DOCKERHUB_NAMESPACE`
+in `.env` to override it without editing the file).
+
+To build and push manually instead of relying on CI (e.g. from an amd64
+dev machine, targeting the Pi's arm64 without building natively on it):
 
 ```bash
-docker buildx build --platform linux/arm64 -t your-registry/todo-app-backend ./backend
-docker buildx build --platform linux/arm64 -t your-registry/todo-app-frontend ./frontend
+docker login
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t ddundee/todo-app-backend:latest --push ./backend
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -t ddundee/todo-app-frontend:latest --push ./frontend
 ```
 
 Building natively on the Pi (`docker compose up -d --build` run directly
-on the Pi, as in step 4) avoids all of this — Docker automatically pulls
+on the Pi) also works and avoids all of this — Docker automatically pulls
 the correct arm64 base images since it matches the host architecture.
