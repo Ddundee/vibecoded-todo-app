@@ -24,12 +24,13 @@ FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-RUN useradd --create-home --uid 1000 appuser
-COPY --from=builder --chown=appuser:appuser /app/public ./public
-COPY --from=builder --chown=appuser:appuser /app/.next/standalone ./
-COPY --from=builder --chown=appuser:appuser /app/.next/static ./.next/static
+# node:20-slim already ships a non-root "node" user (uid/gid 1000) —
+# reuse it instead of creating a second uid 1000 user, which errors.
+COPY --from=builder --chown=node:node /app/public ./public
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 
-USER appuser
+USER node
 EXPOSE 3000
 ENV PORT=3000 HOSTNAME=0.0.0.0
 
