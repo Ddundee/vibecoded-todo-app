@@ -191,6 +191,24 @@ Your data isn't touched — it lives in the `postgres_data` named volume,
 independent of the containers/images. Back up first if you're doing a
 major version jump (`./scripts/backup.sh`).
 
+### Why this doesn't lose data or log you out
+
+- **Database**: Postgres data lives in the `postgres_data` named volume.
+  `up -d` / `up -d --build` only replace images and recreate containers —
+  volumes are untouched. (Don't run `docker compose down -v`; the `-v`
+  flag deletes volumes.)
+- **Schema changes are additive-only**: startup runs
+  `SQLModel.metadata.create_all()`, which adds new tables/columns and
+  never drops or rewrites existing ones (see "V1 scope" above).
+- **Your login survives**: the admin account is only seeded if no user
+  exists yet (`app/services/auth.py`), so an existing account is never
+  reset or overwritten by a restart. `SESSION_SECRET` stays in `.env`
+  across updates too, so your browser session isn't invalidated.
+- **Downtime is brief and scoped**: `docker compose up -d` only recreates
+  the containers whose image/config actually changed — e.g. an update
+  that only touches the frontend won't restart `backend`, `mcp`, or `db`.
+  Expect a few seconds of downtime per affected service, not a full outage.
+
 ## Authentication model
 
 - **`API_TOKEN`** (long random string): a single Bearer token for the MCP
