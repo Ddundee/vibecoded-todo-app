@@ -4,7 +4,7 @@ import { useState } from "react";
 import { api } from "@/lib/api";
 import { notifyTasksChanged } from "@/lib/events";
 import { relativeDueLabel } from "@/lib/format";
-import type { Task } from "@/lib/types";
+import { isTaskDone, type Task } from "@/lib/types";
 import { BUTTON_GHOST_SM } from "@/lib/ui";
 import { CategoryBadge, PriorityBadge, StatusBadge } from "./Badges";
 
@@ -17,7 +17,7 @@ interface Props {
 
 export default function TaskRow({ task, onUpdated, onDeleted, onEdit }: Props) {
   const [busy, setBusy] = useState(false);
-  const isDone = task.status === "completed" || task.status === "cancelled";
+  const isDone = isTaskDone(task);
 
   async function toggleComplete() {
     setBusy(true);

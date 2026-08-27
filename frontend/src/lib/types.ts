@@ -18,6 +18,10 @@ export type RecurrencePattern =
 
 export const SEED_CATEGORIES = ["LeetCode", "school", "project", "personal", "errands"] as const;
 
+export function isTaskDone(task: { status: TaskStatus }): boolean {
+  return task.status === "completed" || task.status === "cancelled";
+}
+
 export interface Task {
   id: string;
   title: string;

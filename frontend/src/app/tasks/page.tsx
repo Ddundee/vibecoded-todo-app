@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { api } from "@/lib/api";
 import { useTaskListState } from "@/lib/useTasks";
-import { SEED_CATEGORIES, type Task, type TaskPriority, type TaskStatus } from "@/lib/types";
+import {
+  isTaskDone,
+  SEED_CATEGORIES,
+  type Task,
+  type TaskPriority,
+  type TaskStatus,
+} from "@/lib/types";
 import { BUTTON_PRIMARY, CARD_LIST, FAINT, FIELD } from "@/lib/ui";
 import TaskRow from "@/components/TaskRow";
 import TaskEditModal from "@/components/TaskEditModal";
@@ -32,6 +38,10 @@ export default function AllTasksPage() {
         .then((r) => r.tasks),
     [status, category, priority, search]
   );
+
+  // Array.sort is stable, so this only moves done tasks after not-done ones
+  // without disturbing whatever order the API returned within each group.
+  const sortedTasks = [...tasks].sort((a, b) => Number(isTaskDone(a)) - Number(isTaskDone(b)));
 
   return (
     <div className="space-y-4">
@@ -93,7 +103,7 @@ export default function AllTasksPage() {
       )}
 
       <ul className={CARD_LIST}>
-        {tasks.map((t) => (
+        {sortedTasks.map((t) => (
           <TaskRow
             key={t.id}
             task={t}
