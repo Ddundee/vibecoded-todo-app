@@ -216,17 +216,55 @@ export default function SettingsPage() {
               automatically — nothing else to configure.
             </li>
             <li>
-              Connect ChatGPT: with the tunnel running, go to{" "}
-              <a
-                href="https://chatgpt.com/#settings/Connectors"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-indigo-600 underline decoration-indigo-300 underline-offset-2 hover:text-indigo-500 dark:text-indigo-400"
-              >
-                ChatGPT → Settings → Connectors
-              </a>
-              , add a connector, choose <strong>Tunnel</strong> as the
-              connection type, and select your <code>tunnel_id</code>.
+              Turn on <strong>Developer Mode</strong> in ChatGPT — it&apos;s
+              what unlocks adding a custom/unverified connector at all. In
+              ChatGPT, open Settings → <strong>Security and login</strong>,
+              scroll to the <strong>Developer mode</strong> section, and flip
+              the toggle (it&apos;s labeled &quot;Elevated risk&quot; —
+              that&apos;s expected for any self-hosted MCP server, not
+              specific to this one).
+            </li>
+            <li>
+              Go to <strong>Settings → Plugins</strong> (this is where the{" "}
+              <code>#settings/Connectors</code> link actually lands, despite
+              the name) → <strong>Browse plugins</strong> → the{" "}
+              <strong>+</strong> button to open the &quot;New Plugin&quot;
+              dialog.
+            </li>
+            <li>
+              Fill it in:
+              <ul className="mt-2 list-disc space-y-1.5 pl-5">
+                <li>
+                  <strong>Name</strong>: anything, e.g. &quot;Personal
+                  Tasks&quot;.
+                </li>
+                <li>
+                  <strong>Connection</strong>: switch from{" "}
+                  <em>Server URL</em> to <strong>Tunnel</strong>, then select
+                  your tunnel or paste the <code>tunnel_id</code> from step 1.
+                </li>
+                <li>
+                  <strong>Authentication</strong>: choose{" "}
+                  <strong>No Auth</strong> — not OAuth. Your{" "}
+                  <code>tunnel-client</code> already injects the{" "}
+                  <code>Authorization: Bearer</code> header itself on the hop
+                  to your MCP server (that&apos;s what{" "}
+                  <code>MCP_EXTRA_HEADERS</code> in the compose service does),
+                  so ChatGPT never needs to run its own auth handshake with
+                  it. Picking OAuth here just makes ChatGPT try (and fail) to
+                  discover an OAuth flow your server doesn&apos;t have.
+                </li>
+                <li>
+                  Check <strong>&quot;I understand and want to
+                  continue&quot;</strong> under the custom-MCP-server risk
+                  warning — standard friction for any self-hosted/unverified
+                  server, not a sign something&apos;s wrong.
+                </li>
+              </ul>
+            </li>
+            <li>
+              Click <strong>Create</strong>. Your tasks are now reachable
+              from ChatGPT.
             </li>
           </ol>
 

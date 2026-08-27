@@ -215,10 +215,29 @@ already requires — the token never leaves this host; it's only used on the
 `tunnel-client → mcp` hop, not sent to OpenAI as a header value (it's
 resolved from the container's own environment).
 
-**5. Connect ChatGPT**: with the tunnel running, go to
-[ChatGPT → Settings → Connectors](https://chatgpt.com/#settings/Connectors),
-create a new connector, choose **Tunnel** as the connection type, and
-select (or paste) your `tunnel_id`.
+**5. Turn on Developer Mode in ChatGPT** — required to add any
+custom/unverified connector. In ChatGPT: Settings → **Security and
+login** → scroll to **Developer mode** → flip the toggle (labeled
+"Elevated risk" — expected for any self-hosted MCP server).
+
+**6. Create the connector**: go to
+[ChatGPT → Settings → Plugins](https://chatgpt.com/#settings/Connectors)
+(this is where that link actually lands, despite the name) → **Browse
+plugins** → **+** to open "New Plugin", then:
+
+- **Name**: anything, e.g. "Personal Tasks".
+- **Connection**: switch from *Server URL* to **Tunnel**, then select
+  your tunnel or paste the `tunnel_id` from step 1.
+- **Authentication**: choose **No Auth**, not OAuth. `tunnel-client`
+  already injects the `Authorization: Bearer` header itself on the hop
+  to your MCP server (that's what `MCP_EXTRA_HEADERS` above does), so
+  ChatGPT never needs its own auth handshake with it — OAuth here just
+  makes ChatGPT try (and fail) to discover a flow your server doesn't
+  have.
+- Check "I understand and want to continue" under the custom-MCP-server
+  risk warning — standard friction for any self-hosted server.
+
+Click **Create**. Your tasks are now reachable from ChatGPT.
 
 To stop just the tunnel without touching the rest of the stack:
 
