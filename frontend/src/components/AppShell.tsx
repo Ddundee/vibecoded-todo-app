@@ -30,7 +30,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <aside className="w-56 shrink-0 border-r border-neutral-200 bg-white flex flex-col dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex items-center gap-2 px-5 py-5">
           <span className="h-2 w-2 rounded-full bg-indigo-600 dark:bg-indigo-400" />
@@ -87,11 +87,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="border-b border-neutral-200 bg-white px-6 py-3 dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="flex flex-1 flex-col min-w-0 min-h-0">
+        <header className="shrink-0 border-b border-neutral-200 bg-white px-6 py-3 dark:border-neutral-800 dark:bg-neutral-900">
           <QuickAddBar onCreated={() => notifyTasksChanged()} />
         </header>
-        <main className="flex-1 px-6 py-8 max-w-3xl w-full mx-auto">{children}</main>
+        <main className="flex-1 min-h-0 overflow-y-auto px-6 py-8">
+          <div className="max-w-3xl w-full mx-auto">{children}</div>
+        </main>
       </div>
     </div>
   );
