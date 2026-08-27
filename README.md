@@ -147,6 +147,15 @@ Tailscale IP / MagicDNS name automatically, with no port forwarding and no
 public exposure. Full instructions, including how to restrict access to
 *only* the tailnet (never LAN), are in [`docs/TAILSCALE.md`](docs/TAILSCALE.md).
 
+## Connecting ChatGPT via OpenAI Secure MCP Tunnel
+
+To let ChatGPT/Codex/the Responses API reach this project's MCP server
+with no inbound port opened on your network, an opt-in `openai-tunnel`
+service (using [`openai/tunnel-client`](https://github.com/openai/tunnel-client))
+is included in `docker-compose.yml`. See the
+["Connecting ChatGPT via OpenAI Secure MCP Tunnel" section of `docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md#connecting-chatgpt-via-openai-secure-mcp-tunnel-optional)
+for setup.
+
 ## Backing up the database
 
 ```bash

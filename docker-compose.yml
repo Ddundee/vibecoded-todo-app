@@ -94,6 +94,26 @@ services:
       retries: 5
       start_period: 10s
 
+  # OpenAI Secure MCP Tunnel client — outbound-only connection that lets
+  # ChatGPT/Codex/the Responses API reach the `mcp` service above without
+  # opening any inbound port. Requires OPENAI_TUNNEL_ID + OPENAI_TUNNEL_API_KEY
+  # in .env (see docs/DEPLOYMENT.md). Opt-in: only starts with
+  # `docker compose --profile openai-tunnel up -d`.
+  openai-tunnel:
+    image: ghcr.io/openai/tunnel-client:latest
+    profiles: ["openai-tunnel"]
+    restart: unless-stopped
+    environment:
+      CONTROL_PLANE_TUNNEL_ID: ${OPENAI_TUNNEL_ID:-}
+      CONTROL_PLANE_API_KEY: ${OPENAI_TUNNEL_API_KEY:-}
+      MCP_SERVER_URL: http://mcp:8001/mcp
+      MCP_EXTRA_HEADERS: "Authorization: Bearer ${API_TOKEN}"
+      LOG_LEVEL: info
+      LOG_FORMAT: json
+    depends_on:
+      mcp:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   backend_data:

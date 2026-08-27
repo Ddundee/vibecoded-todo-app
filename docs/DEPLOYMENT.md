@@ -166,3 +166,66 @@ docker buildx build --platform linux/amd64,linux/arm64 \
 Building natively on the Pi (`docker compose up -d --build` run directly
 on the Pi) also works and avoids all of this — Docker automatically pulls
 the correct arm64 base images since it matches the host architecture.
+
+## Connecting ChatGPT via OpenAI Secure MCP Tunnel (optional)
+
+If you want ChatGPT (or Codex, or the Responses API) to talk to this
+project's MCP server without opening any inbound port on your network,
+OpenAI's [Secure MCP Tunnel](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)
+runs a small client ([`openai/tunnel-client`](https://github.com/openai/tunnel-client))
+next to your MCP server that makes an **outbound-only** HTTPS connection to
+OpenAI, long-polls for queued requests, and forwards them to `mcp:8001`
+locally. Nothing on your network accepts inbound traffic, and the tunnel
+carries only MCP JSON-RPC, not your whole network.
+
+A ready-to-use `openai-tunnel` service is already defined in
+`docker-compose.yml`, gated behind a Compose profile so it never runs
+unless you ask for it.
+
+**1. Create a tunnel** at
+[platform.openai.com → Settings → Tunnels](https://platform.openai.com/settings/organization/tunnels)
+(requires the Tunnels *Read + Manage* permission on your org). Associate it
+with the ChatGPT workspace you want to use it from, and copy the resulting
+`tunnel_id` (looks like `tunnel_0123456789abcdef0123456789abcdef`).
+
+**2. Create a runtime API key** at
+[platform.openai.com → Settings → API keys](https://platform.openai.com/settings/organization/api-keys)
+scoped with Tunnels *Read + Use* for that tunnel.
+
+Both of these are account actions only you can do — do this in your own
+browser rather than pasting the key anywhere.
+
+**3. Add both values to `.env`:**
+
+```bash
+OPENAI_TUNNEL_ID=tunnel_...
+OPENAI_TUNNEL_API_KEY=sk-...
+```
+
+**4. Start the tunnel** alongside the rest of the stack:
+
+```bash
+docker compose --profile openai-tunnel up -d
+```
+
+This runs `ghcr.io/openai/tunnel-client` pointed at `http://mcp:8001/mcp`
+(the same MCP service everything else in this stack uses) and injects your
+existing `API_TOKEN` as the `Authorization: Bearer` header the MCP server
+already requires — the token never leaves this host; it's only used on the
+`tunnel-client → mcp` hop, not sent to OpenAI as a header value (it's
+resolved from the container's own environment).
+
+**5. Connect ChatGPT**: with the tunnel running, go to
+[ChatGPT → Settings → Connectors](https://chatgpt.com/#settings/Connectors),
+create a new connector, choose **Tunnel** as the connection type, and
+select (or paste) your `tunnel_id`.
+
+To stop just the tunnel without touching the rest of the stack:
+
+```bash
+docker compose --profile openai-tunnel stop openai-tunnel
+```
+
+Everything else in this stack runs exactly as before if you never set
+these two variables or pass `--profile openai-tunnel` — this integration
+is entirely opt-in.
